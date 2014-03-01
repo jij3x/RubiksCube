@@ -1,3 +1,12 @@
+package rubikscube;
+
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.junit.Test;
+
 public class RubiksCubeTest {
 	private RubiksCube createCube() {
 		HashMap<Color, Color[][]> newCube = new HashMap<Color, Color[][]>();

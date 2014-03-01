@@ -1,3 +1,8 @@
+package rubikscube;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
 public class RubiksCube {
 	/*
 	 * +---+
@@ -8,15 +13,6 @@ public class RubiksCube {
 	 * | W |
 	 * +---+
 	 */
-	public enum Color {
-		White, Yellow, Blue, Green, Red, Orange
-	};
-
-	public enum Move {
-		RightClockwise, RightFlip, RightCounterCW, LeftClockwise, LeftFlip, LeftCounterCW, FrontClockwise, FrontFlip,
-		FrontCounterCW, BackClockwise, BackFlip, BackCounterCW, BottomClockwise, BottomFlip, BottomCounterCW,
-		TopClockwise, TopFlip, TopCounterCW
-	};
 
 	private HashMap<Color, Color[][]> cube;
 
