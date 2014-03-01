@@ -16,16 +16,36 @@ public class RubiksCube {
 	private HashMap<Color, Color[][]> cube;
 	private Color[][] top, bottom, left, right, front, back;
 
-	public RubiksCube(HashMap<Color, Color[][]> cube) {
-		this.cube = new HashMap<Color, Color[][]>(cube.size());
-		for (Color[][] face : cube.values()) {
+	private HashMap<Color, Color[][]> clone(HashMap<Color, Color[][]> sourceCube) {
+		HashMap<Color, Color[][]> cloneCube = new HashMap<Color, Color[][]>(sourceCube.size());
+		for (Color[][] face : sourceCube.values()) {
 			Color[][] cloneFace = new Color[face.length][face[0].length];
 			for (int y = 0; y < cloneFace.length; y++) {
 				for (int x = 0; x < cloneFace[0].length; x++) {
 					cloneFace[y][x] = face[y][x];
 				}
 			}
-			this.cube.put(cloneFace[1][1], cloneFace);
+			cloneCube.put(cloneFace[1][1], cloneFace);
+		}
+		return cloneCube;
+	}
+
+	public RubiksCube() {
+		this.cube = new HashMap<Color, Color[][]>();
+
+		this.cube.put(Color.Green, new Color[3][3]);
+		this.cube.put(Color.Blue, new Color[3][3]);
+		this.cube.put(Color.Red, new Color[3][3]);
+		this.cube.put(Color.Orange, new Color[3][3]);
+		this.cube.put(Color.White, new Color[3][3]);
+		this.cube.put(Color.Yellow, new Color[3][3]);
+
+		for (Color k : this.cube.keySet()) {
+			Color[][] face = this.cube.get(k);
+			for (int y = 0; y < 3; y++) {
+				for (int x = 0; x < 3; x++)
+					face[y][x] = k;
+			}
 		}
 
 		this.top = cube.get(Color.Yellow);
@@ -36,13 +56,28 @@ public class RubiksCube {
 		this.back = cube.get(Color.Orange);
 	}
 
+	public RubiksCube(HashMap<Color, Color[][]> cube) {
+		this.cube = clone(cube);
+
+		this.top = cube.get(Color.Yellow);
+		this.bottom = cube.get(Color.White);
+		this.left = cube.get(Color.Blue);
+		this.right = cube.get(Color.Green);
+		this.front = cube.get(Color.Red);
+		this.back = cube.get(Color.Orange);
+	}
+
+	public final HashMap<Color, Color[][]> getCubeSnapshot() {
+		return clone(cube);
+	}
+
 	private void rotateCW90(Color[][] face) {
 		for (int i = 0; i < 2; i++) {
 			Color temp = face[0][i];
 			face[0][i] = face[2 - i][0];
 			face[2 - i][0] = face[2][2 - i];
-			face[2][2 - i] = face[2 - i][2];
-			face[2 - i][2] = temp;
+			face[2][2 - i] = face[i][2];
+			face[i][2] = temp;
 		}
 	}
 
@@ -142,9 +177,9 @@ public class RubiksCube {
 				for (int j = 0; j < 3; j++) {
 					tempColor = this.top[2][j];
 					this.top[2][j] = this.left[2 - j][2];
-					this.left[2 - j][2] = this.bottom[0][j];
-					this.bottom[0][j] = this.right[2 - j][0];
-					this.right[2 - j][0] = tempColor;
+					this.left[2 - j][2] = this.bottom[0][2 - j];
+					this.bottom[0][2 - j] = this.right[j][0];
+					this.right[j][0] = tempColor;
 				}
 				rotateCW90(this.front);
 				break;
@@ -335,10 +370,47 @@ public class RubiksCube {
 				rotate180(this.bottom);
 				break;
 			case ZCW90:
+				tempFace = this.top;
+				this.top = this.left;
+				this.left = this.bottom;
+				this.bottom = this.right;
+				this.right = tempFace;
+
+				rotateCW90(this.front);
+				rotateCCW90(this.back);
+				rotateCW90(this.right);
+				rotateCW90(this.top);
+				rotateCW90(this.left);
+				rotateCW90(this.bottom);
 				break;
 			case ZCCW90:
+				tempFace = this.top;
+				this.top = this.right;
+				this.right = this.bottom;
+				this.bottom = this.left;
+				this.left = tempFace;
+
+				rotateCCW90(this.front);
+				rotateCW90(this.back);
+				rotateCCW90(this.right);
+				rotateCCW90(this.top);
+				rotateCCW90(this.left);
+				rotateCCW90(this.bottom);
 				break;
 			case Z180:
+				tempFace = this.top;
+				this.top = this.bottom;
+				this.bottom = tempFace;
+				tempFace = this.right;
+				this.right = this.left;
+				this.left = tempFace;
+
+				rotate180(this.front);
+				rotate180(this.back);
+				rotate180(this.top);
+				rotate180(this.bottom);
+				rotate180(this.left);
+				rotate180(this.right);
 				break;
 			default:
 				break;
@@ -346,15 +418,66 @@ public class RubiksCube {
 		}
 	}
 
-	public boolean isSolvedCube() {
-		for (Color[][] face : cube.values()) {
-			for (int y = 0; y < 3; y++) {
-				for (int x = 0; x < 3; x++) {
-					if (face[y][x] != face[1][1])
-						return false;
-				}
-			}
+	private boolean validPieceCount() {
+		HashMap<Color, Integer> colorCounter = new HashMap<Color, Integer>();
+		for (Color color : Color.values()) {
+			colorCounter.put(color, 0);
 		}
+
+		// verify center pieces count
+		for (Color[][] face : this.cube.values()) {
+			int c = colorCounter.get(face[1][1]);
+			colorCounter.put(face[1][1], c + 1);
+		}
+		for (int counter : colorCounter.values()) {
+			if (counter != 1)
+				return false;
+		}
+
+		// verify edge pieces count
+		for (Color color : colorCounter.keySet()) {
+			colorCounter.put(color, 0);
+		}
+		for (Color[][] face : this.cube.values()) {
+			int c = colorCounter.get(face[0][1]);
+			colorCounter.put(face[0][1], c + 1);
+
+			c = colorCounter.get(face[1][0]);
+			colorCounter.put(face[1][0], c + 1);
+
+			c = colorCounter.get(face[1][2]);
+			colorCounter.put(face[1][2], c + 1);
+
+			c = colorCounter.get(face[2][1]);
+			colorCounter.put(face[2][1], c + 1);
+		}
+		for (int counter : colorCounter.values()) {
+			if (counter != 4)
+				return false;
+		}
+
+		// verify corner pieces count
+		for (Color color : colorCounter.keySet()) {
+			colorCounter.put(color, 0);
+		}
+		for (Color[][] face : this.cube.values()) {
+			int c = colorCounter.get(face[0][0]);
+			colorCounter.put(face[0][0], c + 1);
+
+			c = colorCounter.get(face[0][2]);
+			colorCounter.put(face[0][2], c + 1);
+
+			c = colorCounter.get(face[2][0]);
+			colorCounter.put(face[2][0], c + 1);
+
+			c = colorCounter.get(face[2][2]);
+			colorCounter.put(face[2][2], c + 1);
+		}
+		for (int counter : colorCounter.values()) {
+			if (counter != 4)
+				return false;
+		}
+
 		return true;
 	}
 
@@ -374,25 +497,6 @@ public class RubiksCube {
 	}
 
 	private boolean validCenterpieces() {
-		HashMap<Color, Integer> colorCounter = new HashMap<Color, Integer>();
-		colorCounter.put(Color.Red, 0);
-		colorCounter.put(Color.Orange, 0);
-		colorCounter.put(Color.White, 0);
-		colorCounter.put(Color.Yellow, 0);
-		colorCounter.put(Color.Blue, 0);
-		colorCounter.put(Color.Green, 0);
-
-		colorCounter.put(this.front[1][1], colorCounter.get(this.front[1][1]) + 1);
-		colorCounter.put(this.back[1][1], colorCounter.get(this.back[1][1]) + 1);
-		colorCounter.put(this.left[1][1], colorCounter.get(this.left[1][1]) + 1);
-		colorCounter.put(this.right[1][1], colorCounter.get(this.right[1][1]) + 1);
-		colorCounter.put(this.top[1][1], colorCounter.get(this.top[1][1]) + 1);
-		colorCounter.put(this.bottom[1][1], colorCounter.get(this.bottom[1][1]) + 1);
-		for (int counter : colorCounter.values()) {
-			if (counter != 1)
-				return false;
-		}
-
 		if (this.top[1][1] == Color.Yellow) {
 			if (this.bottom[1][1] != Color.White)
 				return false;
@@ -427,9 +531,42 @@ public class RubiksCube {
 	}
 
 	public boolean isValidCube() {
+		if (!validPieceCount())
+			return false;
 		if (!validCenterpieces())
 			return false;
 
+		return true;
+	}
+
+	public boolean isSameCube(RubiksCube target) {
+		HashMap<Color, Color[][]> targetCube = target.getCubeSnapshot();
+
+		for (Color k : this.cube.keySet()) {
+			if (!targetCube.containsKey(k))
+				return false;
+
+			Color[][] face = this.cube.get(k);
+			Color[][] targetFace = targetCube.get(k);
+			for (int i = 0; i < face.length; i++) {
+				for (int j = 0; j < face[0].length; j++) {
+					if (face[i][j] != targetFace[i][j])
+						return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	public boolean isSolvedCube() {
+		for (Color[][] face : cube.values()) {
+			for (int y = 0; y < 3; y++) {
+				for (int x = 0; x < 3; x++) {
+					if (face[y][x] != face[1][1])
+						return false;
+				}
+			}
+		}
 		return true;
 	}
 
