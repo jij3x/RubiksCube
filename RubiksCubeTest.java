@@ -43,68 +43,68 @@ public class RubiksCubeTest {
 		assertTrue(testingCube.isSolvedCube());
 
 		ArrayList<Move> steps = new ArrayList<Move>();
-		steps.add(Move.RightClockwise);
-		steps.add(Move.RightCounterCW);
+		steps.add(Move.RightCW90);
+		steps.add(Move.RightCCW90);
 		testingCube.turnCube(steps);
 		assertTrue(testingCube.isSolvedCube());
 		steps.clear();
-		steps.add(Move.RightFlip);
-		steps.add(Move.RightFlip);
-		testingCube.turnCube(steps);
-		assertTrue(testingCube.isSolvedCube());
-
-		steps.clear();
-		steps.add(Move.LeftClockwise);
-		steps.add(Move.LeftCounterCW);
-		testingCube.turnCube(steps);
-		assertTrue(testingCube.isSolvedCube());
-		steps.clear();
-		steps.add(Move.LeftFlip);
-		steps.add(Move.LeftFlip);
+		steps.add(Move.Right180);
+		steps.add(Move.Right180);
 		testingCube.turnCube(steps);
 		assertTrue(testingCube.isSolvedCube());
 
 		steps.clear();
-		steps.add(Move.FrontClockwise);
-		steps.add(Move.FrontCounterCW);
+		steps.add(Move.LeftCW90);
+		steps.add(Move.LeftCCW90);
 		testingCube.turnCube(steps);
 		assertTrue(testingCube.isSolvedCube());
 		steps.clear();
-		steps.add(Move.FrontFlip);
-		steps.add(Move.FrontFlip);
-		testingCube.turnCube(steps);
-		assertTrue(testingCube.isSolvedCube());
-
-		steps.clear();
-		steps.add(Move.BackClockwise);
-		steps.add(Move.BackCounterCW);
-		testingCube.turnCube(steps);
-		assertTrue(testingCube.isSolvedCube());
-		steps.clear();
-		steps.add(Move.BackFlip);
-		steps.add(Move.BackFlip);
+		steps.add(Move.Left180);
+		steps.add(Move.Left180);
 		testingCube.turnCube(steps);
 		assertTrue(testingCube.isSolvedCube());
 
 		steps.clear();
-		steps.add(Move.TopClockwise);
-		steps.add(Move.TopCounterCW);
+		steps.add(Move.FrontCW90);
+		steps.add(Move.FrontCCW90);
 		testingCube.turnCube(steps);
 		assertTrue(testingCube.isSolvedCube());
 		steps.clear();
-		steps.add(Move.TopFlip);
-		steps.add(Move.TopFlip);
+		steps.add(Move.Front180);
+		steps.add(Move.Front180);
 		testingCube.turnCube(steps);
 		assertTrue(testingCube.isSolvedCube());
 
 		steps.clear();
-		steps.add(Move.BottomClockwise);
-		steps.add(Move.BottomCounterCW);
+		steps.add(Move.BackCW90);
+		steps.add(Move.BackCCW90);
 		testingCube.turnCube(steps);
 		assertTrue(testingCube.isSolvedCube());
 		steps.clear();
-		steps.add(Move.BottomFlip);
-		steps.add(Move.BottomFlip);
+		steps.add(Move.Back180);
+		steps.add(Move.Back180);
+		testingCube.turnCube(steps);
+		assertTrue(testingCube.isSolvedCube());
+
+		steps.clear();
+		steps.add(Move.TopCW90);
+		steps.add(Move.TopCCW90);
+		testingCube.turnCube(steps);
+		assertTrue(testingCube.isSolvedCube());
+		steps.clear();
+		steps.add(Move.Top180);
+		steps.add(Move.Top180);
+		testingCube.turnCube(steps);
+		assertTrue(testingCube.isSolvedCube());
+
+		steps.clear();
+		steps.add(Move.BottomCW90);
+		steps.add(Move.BottomCCW90);
+		testingCube.turnCube(steps);
+		assertTrue(testingCube.isSolvedCube());
+		steps.clear();
+		steps.add(Move.Bottom180);
+		steps.add(Move.Bottom180);
 		testingCube.turnCube(steps);
 		assertTrue(testingCube.isSolvedCube());
 	}
