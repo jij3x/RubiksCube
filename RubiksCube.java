@@ -60,9 +60,14 @@ public class RubiksCube {
 			face[2][2 - i] = temp;
 
 			temp = face[i][2];
-			face[i][2] = face[i - 2][0];
-			face[i - 2][0] = temp;
+			face[i][2] = face[2 - i][0];
+			face[2 - i][0] = temp;
 		}
+	}
+
+	public void turnCube(ArrayList<Move> steps) {
+		turnCube(cube.get(Color.Yellow), cube.get(Color.White), cube.get(Color.Blue), cube.get(Color.Green),
+				cube.get(Color.Red), cube.get(Color.Orange), steps);
 	}
 
 	public void turnCube(Color[][] top, Color[][] bottom, Color[][] left, Color[][] right, Color[][] front,
@@ -79,6 +84,7 @@ public class RubiksCube {
 					top[0][j] = temp;
 				}
 				clockwiseRotate(back);
+				break;
 			case BackCounterCW:
 				for (int j = 0; j < 3; j++) {
 					temp = right[j][2];
@@ -88,6 +94,7 @@ public class RubiksCube {
 					bottom[2][2 - j] = temp;
 				}
 				counterCWRotate(back);
+				break;
 			case BackFlip:
 				for (int j = 0; j < 3; j++) {
 					temp = right[j][2];
@@ -234,7 +241,7 @@ public class RubiksCube {
 					front[0][j] = right[0][j];
 					right[0][j] = back[0][j];
 					back[0][j] = left[0][j];
-					left[0][j] = front[0][j];
+					left[0][j] = temp;
 				}
 				clockwiseRotate(top);
 				break;
@@ -244,7 +251,7 @@ public class RubiksCube {
 					front[0][j] = left[0][j];
 					left[0][j] = back[0][j];
 					back[0][j] = right[0][j];
-					right[0][j] = front[0][j];
+					right[0][j] = temp;
 				}
 				counterCWRotate(top);
 				break;
