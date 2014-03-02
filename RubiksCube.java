@@ -56,6 +56,10 @@ public class RubiksCube {
 		this.back = cube.get(Color.Orange);
 	}
 
+	public RubiksCube(RubiksCube targetCube) {
+		this(targetCube.getCubeSnapshot());
+	}
+
 	public RubiksCube(HashMap<Color, Color[][]> cube) {
 		this.cube = clone(cube);
 
@@ -340,23 +344,23 @@ public class RubiksCube {
 				break;
 			case YCW90:
 				tempFace = this.front;
-				this.front = this.left;
-				this.left = this.back;
-				this.back = this.right;
-				this.right = tempFace;
-
-				rotateCW90(this.top);
-				rotateCW90(this.bottom);
-				break;
-			case YCCW90:
-				tempFace = this.front;
 				this.front = this.right;
 				this.right = this.back;
 				this.back = this.left;
 				this.left = tempFace;
 
-				rotateCCW90(this.top);
+				rotateCW90(this.top);
 				rotateCCW90(this.bottom);
+				break;
+			case YCCW90:
+				tempFace = this.front;
+				this.front = this.left;
+				this.left = this.back;
+				this.back = this.right;
+				this.right = tempFace;
+
+				rotateCCW90(this.top);
+				rotateCW90(this.bottom);
 				break;
 			case Y180:
 				tempFace = this.front;
@@ -418,69 +422,6 @@ public class RubiksCube {
 		}
 	}
 
-	private boolean validPieceCount() {
-		HashMap<Color, Integer> colorCounter = new HashMap<Color, Integer>();
-		for (Color color : Color.values()) {
-			colorCounter.put(color, 0);
-		}
-
-		// verify center pieces count
-		for (Color[][] face : this.cube.values()) {
-			int c = colorCounter.get(face[1][1]);
-			colorCounter.put(face[1][1], c + 1);
-		}
-		for (int counter : colorCounter.values()) {
-			if (counter != 1)
-				return false;
-		}
-
-		// verify edge pieces count
-		for (Color color : colorCounter.keySet()) {
-			colorCounter.put(color, 0);
-		}
-		for (Color[][] face : this.cube.values()) {
-			int c = colorCounter.get(face[0][1]);
-			colorCounter.put(face[0][1], c + 1);
-
-			c = colorCounter.get(face[1][0]);
-			colorCounter.put(face[1][0], c + 1);
-
-			c = colorCounter.get(face[1][2]);
-			colorCounter.put(face[1][2], c + 1);
-
-			c = colorCounter.get(face[2][1]);
-			colorCounter.put(face[2][1], c + 1);
-		}
-		for (int counter : colorCounter.values()) {
-			if (counter != 4)
-				return false;
-		}
-
-		// verify corner pieces count
-		for (Color color : colorCounter.keySet()) {
-			colorCounter.put(color, 0);
-		}
-		for (Color[][] face : this.cube.values()) {
-			int c = colorCounter.get(face[0][0]);
-			colorCounter.put(face[0][0], c + 1);
-
-			c = colorCounter.get(face[0][2]);
-			colorCounter.put(face[0][2], c + 1);
-
-			c = colorCounter.get(face[2][0]);
-			colorCounter.put(face[2][0], c + 1);
-
-			c = colorCounter.get(face[2][2]);
-			colorCounter.put(face[2][2], c + 1);
-		}
-		for (int counter : colorCounter.values()) {
-			if (counter != 4)
-				return false;
-		}
-
-		return true;
-	}
-
 	private boolean frblMatch(Color[] frblPattern) {
 		Color[] target = { this.front[1][1], this.right[1][1], this.back[1][1], this.left[1][1], this.front[1][1],
 				this.right[1][1], this.back[1][1], this.left[1][1] };
@@ -503,37 +444,186 @@ public class RubiksCube {
 			Color[] pattern = { Color.Red, Color.Green, Color.Orange, Color.Blue };
 			return frblMatch(pattern);
 		} else if (this.top[1][1] == Color.White) {
-			if (this.bottom[1][1] == Color.Yellow)
+			if (this.bottom[1][1] != Color.Yellow)
 				return false;
 			Color[] pattern = { Color.Red, Color.Blue, Color.Orange, Color.Green };
 			return frblMatch(pattern);
 		} else if (this.top[1][1] == Color.Blue) {
-			if (this.bottom[1][1] == Color.Green)
+			if (this.bottom[1][1] != Color.Green)
 				return false;
 			Color[] pattern = { Color.Red, Color.Yellow, Color.Orange, Color.White };
 			return frblMatch(pattern);
 		} else if (this.top[1][1] == Color.Green) {
-			if (this.bottom[1][1] == Color.Blue)
+			if (this.bottom[1][1] != Color.Blue)
 				return false;
 			Color[] pattern = { Color.Red, Color.White, Color.Orange, Color.Yellow };
 			return frblMatch(pattern);
 		} else if (this.top[1][1] == Color.Red) {
-			if (this.bottom[1][1] == Color.Orange)
+			if (this.bottom[1][1] != Color.Orange)
 				return false;
 			Color[] pattern = { Color.Yellow, Color.Blue, Color.White, Color.Green };
 			return frblMatch(pattern);
 		} else { // if (this.top[1][1] == Color.Orange)
-			if (this.bottom[1][1] == Color.Red)
+			if (this.bottom[1][1] != Color.Red)
 				return false;
 			Color[] pattern = { Color.Yellow, Color.Green, Color.White, Color.Blue };
 			return frblMatch(pattern);
 		}
 	}
 
-	public boolean isValidCube() {
-		if (!validPieceCount())
+	private boolean validEdgePieces() {
+		EdgeBlockerCounter counter = new EdgeBlockerCounter();
+
+		ArrayList<Color> tuple = new ArrayList<Color>();
+		tuple.add(this.top[2][1]);
+		tuple.add(this.front[0][1]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
 			return false;
+
+		tuple.clear();
+		tuple.add(this.top[1][2]);
+		tuple.add(this.right[0][1]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
+			return false;
+
+		tuple.clear();
+		tuple.add(this.top[1][0]);
+		tuple.add(this.left[0][1]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
+			return false;
+
+		tuple.clear();
+		tuple.add(this.top[0][1]);
+		tuple.add(this.back[0][1]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
+			return false;
+
+		tuple.clear();
+		tuple.add(this.bottom[0][1]);
+		tuple.add(this.front[2][1]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
+			return false;
+
+		tuple.clear();
+		tuple.add(this.bottom[1][2]);
+		tuple.add(this.right[2][1]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
+			return false;
+
+		tuple.clear();
+		tuple.add(this.bottom[1][0]);
+		tuple.add(this.left[2][1]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
+			return false;
+
+		tuple.clear();
+		tuple.add(this.bottom[2][1]);
+		tuple.add(this.back[2][1]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
+			return false;
+
+		tuple.clear();
+		tuple.add(this.front[1][2]);
+		tuple.add(this.right[1][0]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
+			return false;
+
+		tuple.clear();
+		tuple.add(this.front[1][0]);
+		tuple.add(this.left[1][2]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
+			return false;
+
+		tuple.clear();
+		tuple.add(this.right[1][2]);
+		tuple.add(this.back[1][0]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
+			return false;
+
+		tuple.clear();
+		tuple.add(this.left[1][0]);
+		tuple.add(this.back[1][2]);
+		if (!counter.addEdgeBlocker(new EdgeBlocker(tuple)))
+			return false;
+
+		return true;
+	}
+
+	public boolean valideCornerPieces() {
+		CornerBlockerCounter counter = new CornerBlockerCounter();
+
+		ArrayList<Color> triple = new ArrayList<Color>();
+		triple.add(this.top[2][2]);
+		triple.add(this.front[0][2]);
+		triple.add(this.right[0][0]);
+		if (!counter.addCornerBlocker(new CornerBlocker(triple)))
+			return false;
+
+		triple.clear();
+		triple.add(this.top[0][2]);
+		triple.add(this.right[0][2]);
+		triple.add(this.back[0][0]);
+		if (!counter.addCornerBlocker(new CornerBlocker(triple)))
+			return false;
+
+		triple.clear();
+		triple.add(this.top[0][0]);
+		triple.add(this.back[0][2]);
+		triple.add(this.left[0][0]);
+		if (!counter.addCornerBlocker(new CornerBlocker(triple)))
+			return false;
+
+		triple.clear();
+		triple.add(this.top[2][0]);
+		triple.add(this.front[0][0]);
+		triple.add(this.left[0][2]);
+		if (!counter.addCornerBlocker(new CornerBlocker(triple)))
+			return false;
+
+		triple.clear();
+		triple.add(this.bottom[0][0]);
+		triple.add(this.front[2][0]);
+		triple.add(this.left[2][2]);
+		if (!counter.addCornerBlocker(new CornerBlocker(triple)))
+			return false;
+
+		triple.clear();
+		triple.add(this.bottom[0][2]);
+		triple.add(this.front[2][2]);
+		triple.add(this.right[2][0]);
+		if (!counter.addCornerBlocker(new CornerBlocker(triple)))
+			return false;
+
+		triple.clear();
+		triple.add(this.bottom[2][2]);
+		triple.add(this.right[2][2]);
+		triple.add(this.back[2][0]);
+		if (!counter.addCornerBlocker(new CornerBlocker(triple)))
+			return false;
+
+		triple.clear();
+		triple.add(this.bottom[2][0]);
+		triple.add(this.back[2][2]);
+		triple.add(this.left[2][0]);
+		if (!counter.addCornerBlocker(new CornerBlocker(triple)))
+			return false;
+
+		return true;
+	}
+
+	public boolean orientFaces() {
+
+		return true;
+	}
+
+	public boolean isValidCube() {
 		if (!validCenterpieces())
+			return false;
+		if (!validEdgePieces())
+			return false;
+		if (!valideCornerPieces())
+			return false;
+		if (!orientFaces())
 			return false;
 
 		return true;

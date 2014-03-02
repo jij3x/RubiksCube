@@ -99,7 +99,6 @@ public class RubiksCubeTest {
 
 		RubiksCube referenceCube = new RubiksCube();
 		referenceCube.turnCube(steps);
-		assertTrue(referenceCube.isValidCube());
 
 		RubiksCube testingCube = new RubiksCube();
 		testingCube.turnCube(steps);
@@ -317,5 +316,53 @@ public class RubiksCubeTest {
 		testingCube.turnCube(steps);
 		testingCube.turnCube(reverse(steps));
 		assertTrue(testingCube.isSolvedCube());
+	}
+
+	@Test
+	public void testBlockerValidation() {
+		RubiksCube testingCube = new RubiksCube();
+		assertTrue(testingCube.isValidCube());
+
+		ArrayList<Move> steps = new ArrayList<Move>();
+		steps.add(Move.TopCCW90);
+		steps.add(Move.Z180);
+		steps.add(Move.Top180);
+		steps.add(Move.YCW90);
+		steps.add(Move.TopCW90);
+		steps.add(Move.XCCW90);
+		steps.add(Move.Left180);
+		steps.add(Move.ZCCW90);
+		steps.add(Move.RightCCW90);
+		steps.add(Move.RightCW90);
+		steps.add(Move.FrontCCW90);
+		steps.add(Move.ZCW90);
+		steps.add(Move.Y180);
+		steps.add(Move.BackCCW90);
+		steps.add(Move.Front180);
+		steps.add(Move.BackCW90);
+		steps.add(Move.LeftCCW90);
+		steps.add(Move.FrontCW90);
+		steps.add(Move.XCW90);
+		steps.add(Move.Right180);
+		steps.add(Move.X180);
+		steps.add(Move.BottomCW90);
+		steps.add(Move.YCCW90);
+		steps.add(Move.Bottom180);
+		steps.add(Move.LeftCW90);
+		steps.add(Move.Back180);
+		steps.add(Move.BottomCCW90);
+		testingCube.turnCube(steps);
+		assertTrue(testingCube.isValidCube());
+
+		steps.clear();
+		for (Move move : Move.values()) {
+			for (int i = 0; i < 1024; i++)
+				steps.add(move);
+		}
+		long seed = System.nanoTime();
+		Collections.shuffle(steps, new Random(seed));
+		Collections.shuffle(steps, new Random(seed));
+		testingCube.turnCube(steps);
+		assertTrue(testingCube.isValidCube());
 	}
 }
