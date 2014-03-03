@@ -748,12 +748,13 @@ public class RubiksCube {
 
 	public boolean isSameCube(RubiksCube target) {
 		HashMap<Color, Color[][]> targetCube = target.getCubeSnapshot();
+		HashMap<Color, Color[][]> sourceCube = this.getCubeSnapshot();
 
-		for (Color k : this.cube.keySet()) {
+		for (Color k : sourceCube.keySet()) {
 			if (!targetCube.containsKey(k))
 				return false;
 
-			Color[][] face = this.cube.get(k);
+			Color[][] face = sourceCube.get(k);
 			Color[][] targetFace = targetCube.get(k);
 			for (int i = 0; i < face.length; i++) {
 				for (int j = 0; j < face[0].length; j++) {
