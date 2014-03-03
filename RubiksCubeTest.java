@@ -1,9 +1,11 @@
 package rubikscube;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Random;
 
 import org.junit.Test;
@@ -364,5 +366,64 @@ public class RubiksCubeTest {
 		Collections.shuffle(steps, new Random(seed));
 		testingCube.turnCube(steps);
 		assertTrue(testingCube.isValidCube());
+
+		HashMap<Color, Color[][]> inputFaces = new HashMap<Color, Color[][]>();
+		for (Color color : Color.values()) {
+			Color[][] face = new Color[3][3];
+			for (int i = 0; i < 9; i++)
+				face[i / 3][i % 3] = color;
+			if (color == Color.Blue)
+				face[2][2] = Color.Green;
+			if (color == Color.Green)
+				face[2][2] = Color.Blue;
+			inputFaces.put(color, face);
+		}
+		RubiksCube invalidCube = new RubiksCube(inputFaces);
+		steps.clear();
+		for (Move move : Move.values()) {
+			for (int i = 0; i < 2; i++)
+				steps.add(move);
+		}
+		seed = System.nanoTime();
+		Collections.shuffle(steps, new Random(seed));
+		Collections.shuffle(steps, new Random(seed));
+		invalidCube.turnCube(steps);
+		assertFalse(invalidCube.isValidCube());
+	}
+
+	private void rotateCW90(Color[][] face) {
+		for (int i = 0; i < 2; i++) {
+			Color temp = face[0][i];
+			face[0][i] = face[2 - i][0];
+			face[2 - i][0] = face[2][2 - i];
+			face[2][2 - i] = face[i][2];
+			face[i][2] = temp;
+		}
+	}
+
+	@Test
+	public void testFacesOrentation() {
+		RubiksCube referenceCube = new RubiksCube();
+		ArrayList<Move> steps = new ArrayList<Move>();
+		for (Move move : Move.values()) {
+			for (int i = 0; i < 10; i++)
+				steps.add(move);
+		}
+		long seed = System.nanoTime();
+		Collections.shuffle(steps, new Random(seed));
+		Collections.shuffle(steps, new Random(seed));
+		referenceCube.turnCube(steps);
+
+		HashMap<Color, Color[][]> referenceFaces = referenceCube.getCubeSnapshot();
+		rotateCW90(referenceFaces.get(Color.Yellow));
+		rotateCW90(referenceFaces.get(Color.Red));
+		rotateCW90(referenceFaces.get(Color.Red));
+		rotateCW90(referenceFaces.get(Color.Blue));
+		rotateCW90(referenceFaces.get(Color.Blue));
+		rotateCW90(referenceFaces.get(Color.Blue));
+
+		RubiksCube testingCube = new RubiksCube(referenceFaces);
+		testingCube.orientFaces();
+		assertTrue(testingCube.isSameCube(referenceCube));
 	}
 }
