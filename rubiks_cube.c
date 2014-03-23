@@ -4,6 +4,15 @@ cube_t* create_3x3x3(void) {
 	return create_cube(3);
 }
 
+/*
+ *     +---+
+ *     | Y |
+ * +---+---+---+---+
+ * | O | B | R | G |
+ * +---+---+---+---+
+ *     | W |
+ *     +---+
+ */
 cube_t* create_cube(int layers) {
 	cube_t* cube = malloc(sizeof(cube_t));
 
