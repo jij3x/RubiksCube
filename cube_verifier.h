@@ -4,6 +4,6 @@
 #include "globe_inc.h"
 #include "rubiks_cube.h"
 
-bool_t is_valid_3x3x3(cube_t* cube);
+bool_t is_valid_3x3x3(cube_t *cube);
 
 #endif /* CUBE_VERIFIER_H_ */
