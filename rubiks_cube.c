@@ -9,17 +9,17 @@
  *     | W |
  *     +---+
  */
-cube_t *create_cube(int layers) {
+cube_t *create_cube(unsigned int layers) {
 	cube_t *cube = malloc(sizeof(cube_t));
 
 	cube->layers = layers;
-	color_t it;
-	for (it = 0; it < TOTAL_COLOR; it++) {
-		cube->faces[it] = malloc(layers * layers * sizeof(color_t));
-		color_t *face_ptr = (color_t *) cube->faces[it];
-		int i;
-		for (i = 0; i < layers * layers; i++) {
-			face_ptr[i] = it;
+	color_t i;
+	for (i = 0; i < TOTAL_COLOR; i++) {
+		cube->faces[i] = malloc(layers * layers * sizeof(color_t));
+		color_t *face_ptr = (color_t *) cube->faces[i];
+		int j;
+		for (j = 0; j < layers * layers; j++) {
+			face_ptr[j] = i;
 		}
 	}
 	cube->top = cube->faces[YELLOW];
@@ -37,9 +37,9 @@ cube_t *create_3x3x3(void) {
 }
 
 void destroy_cube(cube_t *cube) {
-	color_t it;
-	for (it = 0; it < TOTAL_COLOR; it++) {
-		free(cube->faces[it]);
+	color_t i;
+	for (i = 0; i < TOTAL_COLOR; i++) {
+		free(cube->faces[i]);
 	}
 
 	free(cube);
@@ -48,94 +48,141 @@ void destroy_cube(cube_t *cube) {
 cube_t *clone_cube(cube_t *cube) {
 	cube_t* clone = malloc(sizeof(cube_t));
 
-	int layers = cube->layers;
+	unsigned int layers = cube->layers;
 	clone->layers = layers;
-	color_t it;
-	for (it = 0; it < TOTAL_COLOR; it++) {
-		clone->faces[it] = malloc(layers * layers * sizeof(color_t));
-		color_t *face_ptr = (color_t *) clone->faces[it];
+	color_t i;
+	for (i = 0; i < TOTAL_COLOR; i++) {
+		clone->faces[i] = malloc(layers * layers * sizeof(color_t));
+		color_t *face_ptr = (color_t *) clone->faces[i];
 		int i;
 		for (i = 0; i < layers * layers; i++) {
-			face_ptr[i] = it;
+			face_ptr[i] = i;
 		}
 
-		if (cube->top == cube->faces[it])
-			clone->back = clone->faces[it];
-		else if (cube->bottom == cube->faces[it])
-			clone->back = clone->faces[it];
-		else if (cube->front == cube->faces[it])
-			clone->front = clone->faces[it];
-		else if (cube->back == cube->faces[it])
-			clone->back = clone->faces[it];
-		else if (cube->right == cube->faces[it])
-			clone->right = clone->faces[it];
-		else if (cube->left == cube->faces[it])
-			clone->left = clone->faces[it];
+		if (cube->top == cube->faces[i])
+			clone->back = clone->faces[i];
+		else if (cube->bottom == cube->faces[i])
+			clone->back = clone->faces[i];
+		else if (cube->front == cube->faces[i])
+			clone->front = clone->faces[i];
+		else if (cube->back == cube->faces[i])
+			clone->back = clone->faces[i];
+		else if (cube->right == cube->faces[i])
+			clone->right = clone->faces[i];
+		else if (cube->left == cube->faces[i])
+			clone->left = clone->faces[i];
 	}
 
 	return clone;
 }
 
-void copy_row(color_t *src_ptr, unsigned int src_start_y,
-		unsigned int src_start_x, unsigned int src_end_y,
-		unsigned int src_end_x, color_t *tgt_ptr, unsigned int tgt_start_y,
-		unsigned int tgt_start_x, unsigned int tgt_end_y,
-		unsigned int tgt_end_x) {
-	int i, j, src_step, tgt_step;
-	bool_t reached;
+typedef enum {
+	EAST, SOUTH, WEST, NORTH
+} direction_t;
 
-	int delta_x = src_start_x - src_end_x;
-	int delta_y = src_start_y - src_end_y;
-	int layers = MAX(ABS(delta_x), ABS(delta_y)) + 1;
+void row2row(color_t *src_ptr, unsigned int src_y, unsigned int src_x,
+		direction_t src_dir, color_t *tgt_ptr, unsigned int tgt_y,
+		unsigned int tgt_x, direction_t tgt_dir, unsigned int layers) {
+	assert(layers > 0);
+	assert(
+			(src_dir == EAST && src_x == 0)
+					|| (src_dir == WEST && src_x == layers - 1));
+	assert(
+			(tgt_dir == EAST && tgt_x == 0)
+					|| (tgt_dir == WEST && tgt_x == layers - 1));
+
+	int src_step = (src_dir == EAST ? 1 : -1);
+	int tgt_step = (tgt_dir == EAST ? 1 : -1);
+	int src_end = (src_dir == EAST ? layers - 1 : 0);
 	color_t (*src_face)[layers] = (color_t (*)[layers]) src_ptr;
 	color_t (*tgt_face)[layers] = (color_t (*)[layers]) tgt_ptr;
-
-	if (src_start_x == src_end_x) {
-		if (tgt_start_x == tgt_end_x) {
-			src_step = (src_start_y < src_end_y ? 1 : -1);
-			tgt_step = (tgt_start_y < tgt_end_y ? 1 : -1);
-			i = src_start_y, j = tgt_start_y;
-			for (reached = false; !reached; i += src_step, j += tgt_step) {
-				tgt_face[j][tgt_start_x] = src_face[i][src_start_x];
-				reached = (i == src_end_y ? true : false);
-			}
-		} else { // (src_start_x == src_end_x) && (tgt_start_y == tgt_end_y)
-			src_step = (src_start_y < src_end_y ? 1 : -1);
-			tgt_step = (tgt_start_x < tgt_end_x ? 1 : -1);
-			i = src_start_y, j = tgt_start_x;
-			for (reached = false; !reached; i += src_step, j += tgt_step) {
-				tgt_face[tgt_start_y][j] = src_face[i][src_start_x];
-				reached = (i == src_end_y ? true : false);
-			}
-		}
-	} else {
-		if (tgt_start_x == tgt_end_x) { // (src_start_y == src_end_y)
-			src_step = (src_start_x < src_end_x ? 1 : -1);
-			tgt_step = (tgt_start_y < tgt_end_y ? 1 : -1);
-			i = src_start_x, j = tgt_start_y;
-			for (reached = false; !reached; i += src_step, j += tgt_step) {
-				tgt_face[j][tgt_start_x] = src_face[src_start_y][i];
-				reached = (i == src_end_x ? true : false);
-			}
-		} else { // (src_start_y == src_end_y) && (tgt_start_y == tgt_end_y)
-			src_step = (src_start_x < src_end_x ? 1 : -1);
-			tgt_step = (tgt_start_x < tgt_end_x ? 1 : -1);
-			i = src_start_x, j = tgt_start_x;
-			for (reached = false; !reached; i += src_step, j += tgt_step) {
-				tgt_face[tgt_start_y][j] = src_face[src_start_y][i];
-				reached = (i == src_end_x ? true : false);
-			}
-		}
+	int i, j;
+	bool_t reached = false;
+	for (i = src_x, j = tgt_x; !reached; i += src_step, j += tgt_step) {
+		tgt_face[tgt_y][j] = src_face[src_y][i];
+		reached = (i == src_end ? true : false);
 	}
 }
 
-void rotate_face_cw90(color_t *face_ptr, int layers) {
+void row2col(color_t *src_ptr, unsigned int src_y, unsigned int src_x,
+		direction_t src_dir, color_t *tgt_ptr, unsigned int tgt_y,
+		unsigned int tgt_x, direction_t tgt_dir, unsigned int layers) {
+	assert(layers > 0);
+	assert(
+			(src_dir == EAST && src_x == 0)
+					|| (src_dir == WEST && src_x == layers - 1));
+	assert(
+			(tgt_dir == SOUTH && tgt_y == 0)
+					|| (tgt_dir == NORTH && tgt_y == layers - 1));
+
+	int src_step = (src_dir == EAST ? 1 : -1);
+	int tgt_step = (tgt_dir == SOUTH ? 1 : -1);
+	int src_end = (src_dir == EAST ? layers - 1 : 0);
+	color_t (*src_face)[layers] = (color_t (*)[layers]) src_ptr;
+	color_t (*tgt_face)[layers] = (color_t (*)[layers]) tgt_ptr;
+	int i, j;
+	bool_t reached = false;
+	for (i = src_x, j = tgt_y; !reached; i += src_step, j += tgt_step) {
+		tgt_face[j][tgt_x] = src_face[src_y][i];
+		reached = (i == src_end ? true : false);
+	}
+}
+
+void col2row(color_t *src_ptr, unsigned int src_y, unsigned int src_x,
+		direction_t src_dir, color_t *tgt_ptr, unsigned int tgt_y,
+		unsigned int tgt_x, direction_t tgt_dir, unsigned int layers) {
+	assert(layers > 0);
+	assert(
+			(src_dir == SOUTH && src_y == 0)
+					|| (src_dir == NORTH && src_y == layers - 1));
+	assert(
+			(tgt_dir == EAST && tgt_x == 0)
+					|| (tgt_dir == WEST && tgt_x == layers - 1));
+
+	int src_step = (src_dir == SOUTH ? 1 : -1);
+	int tgt_step = (tgt_dir == EAST ? 1 : -1);
+	int src_end = (src_dir == SOUTH ? layers - 1 : 0);
+	color_t (*src_face)[layers] = (color_t (*)[layers]) src_ptr;
+	color_t (*tgt_face)[layers] = (color_t (*)[layers]) tgt_ptr;
+	int i, j;
+	bool_t reached = false;
+	for (i = src_y, j = tgt_x; !reached; i += src_step, j += tgt_step) {
+		tgt_face[tgt_y][j] = src_face[i][src_x];
+		reached = (i == src_end ? true : false);
+	}
+}
+
+void col2col(color_t *src_ptr, unsigned int src_y, unsigned int src_x,
+		direction_t src_dir, color_t *tgt_ptr, unsigned int tgt_y,
+		unsigned int tgt_x, direction_t tgt_dir, unsigned int layers) {
+	assert(layers > 0);
+	assert(
+			(src_dir == SOUTH && src_y == 0)
+					|| (src_dir == NORTH && src_y == layers - 1));
+	assert(
+			(tgt_dir == SOUTH && tgt_y == 0)
+					|| (tgt_dir == NORTH && tgt_y == layers - 1));
+
+	int src_step = (src_dir == SOUTH ? 1 : -1);
+	int tgt_step = (tgt_dir == SOUTH ? 1 : -1);
+	int src_end = (src_dir == SOUTH ? layers - 1 : 0);
+	color_t (*src_face)[layers] = (color_t (*)[layers]) src_ptr;
+	color_t (*tgt_face)[layers] = (color_t (*)[layers]) tgt_ptr;
+	int i, j;
+	bool_t reached = false;
+	for (i = src_y, j = tgt_y; !reached; i += src_step, j += tgt_step) {
+		tgt_face[j][tgt_x] = src_face[i][src_x];
+		reached = (i == src_end ? true : false);
+	}
+}
+
+void rotate_face_cw90(color_t *face_ptr, unsigned int layers) {
 	color_t (*face)[layers] = (color_t (*)[layers]) face_ptr;
 
-	int lvl, lvl_c, x, x_c, y, y_c;
+	unsigned int lvl, lvl_c, x, x_c, y, y_c;
 	for (lvl = 0, lvl_c = layers - 1 - lvl; lvl < layers / 2; lvl++, lvl_c--) {
-		x = y = lvl, x_c = y_c = lvl_c;
-		for (; x < lvl_c; x++, y++, x_c--, y_c--) {
+		for (x = y = lvl, x_c = y_c = lvl_c; x < lvl_c;
+				x++, y++, x_c--, y_c--) {
 			color_t temp = face[lvl][x];
 			face[lvl][x] = face[y_c][lvl];
 			face[y_c][lvl] = face[lvl_c][x_c];
@@ -145,13 +192,13 @@ void rotate_face_cw90(color_t *face_ptr, int layers) {
 	}
 }
 
-void rotate_face_ccw90(color_t *face_ptr, int layers) {
+void rotate_face_ccw90(color_t *face_ptr, unsigned int layers) {
 	color_t (*face)[layers] = (color_t (*)[layers]) face_ptr;
 
-	int lvl, lvl_c, x, x_c, y, y_c;
+	unsigned int lvl, lvl_c, x, x_c, y, y_c;
 	for (lvl = 0, lvl_c = layers - 1 - lvl; lvl < layers / 2; lvl++, lvl_c--) {
-		x = y = lvl, x_c = y_c = lvl_c;
-		for (; x < lvl_c; x++, y++, x_c--, y_c--) {
+		for (x = y = lvl, x_c = y_c = lvl_c; x < lvl_c;
+				x++, y++, x_c--, y_c--) {
 			color_t temp = face[lvl][x];
 			face[lvl][x] = face[y][lvl_c];
 			face[y][lvl_c] = face[lvl_c][x_c];
@@ -161,13 +208,13 @@ void rotate_face_ccw90(color_t *face_ptr, int layers) {
 	}
 }
 
-void rotate_face_180(color_t *face_ptr, int layers) {
+void rotate_face_180(color_t *face_ptr, unsigned int layers) {
 	color_t (*face)[layers] = (color_t (*)[layers]) face_ptr;
 
-	int lvl, lvl_c, x, x_c, y, y_c;
+	unsigned int lvl, lvl_c, x, x_c, y, y_c;
 	for (lvl = 0, lvl_c = layers - 1 - lvl; lvl < layers / 2; lvl++, lvl_c--) {
-		x = y = lvl, x_c = y_c = lvl_c;
-		for (; x < lvl_c; x++, y++, x_c--, y_c--) {
+		for (x = y = lvl, x_c = y_c = lvl_c; x < lvl_c;
+				x++, y++, x_c--, y_c--) {
 			color_t temp = face[lvl][x];
 			face[lvl][x] = face[lvl_c][x_c];
 			face[lvl_c][x_c] = temp;
@@ -192,11 +239,11 @@ void move_right_cw90(cube_t *cube, unsigned int start_l, unsigned int end_l) {
 
 	color_t *temp = malloc(sizeof(color_t) * layers);
 	for (i = last - start_l, j = start_l; i >= last - end_l; i--, j++) {
-		copy_row(cube->front, 0, i, last, i, temp, 0, 0, 0, last);
-		copy_row(cube->bottom, 0, i, last, i, cube->front, 0, i, last, i);
-		copy_row(cube->back, last, j, 0, j, cube->bottom, 0, i, last, i);
-		copy_row(cube->top, 0, i, last, i, cube->back, last, j, 0, j);
-		copy_row(temp, 0, 0, 0, last, cube->top, 0, i, last, i);
+		col2row(cube->front, 0, i, SOUTH, temp, 0, 0, EAST, layers);
+		col2col(cube->bottom, 0, i, SOUTH, cube->front, 0, i, SOUTH, layers);
+		col2col(cube->back, last, j, NORTH, cube->bottom, 0, i, SOUTH, layers);
+		col2col(cube->top, 0, i, SOUTH, cube->back, last, j, NORTH, layers);
+		row2col(temp, 0, 0, EAST, cube->top, 0, i, SOUTH, layers);
 	}
 	free(temp);
 }

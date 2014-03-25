@@ -38,13 +38,13 @@ typedef enum {
 } step_t;
 
 typedef struct {
-	int layers;
+	unsigned int layers;
 	color_t *faces[TOTAL_COLOR];
 	color_t *top, *bottom, *front, *back, *right, *left;
 } cube_t;
 
 cube_t *create_3x3x3(void);
-cube_t *create_cube(int layers);
+cube_t *create_cube(unsigned int layers);
 void destroy_cube(cube_t *cube);
 cube_t *clone_cube(cube_t *cube);
 
