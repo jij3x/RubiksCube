@@ -2,21 +2,21 @@
 
 bool_t valid_total_color(cube_t *cube) {
     int count_tbl[TOTAL_COLOR], layers = cube->layers;
-    color_t it;
-    for (it = 0; it < TOTAL_COLOR; it++) {
-        count_tbl[it] = layers * layers;
+    color_t i;
+    for (i = 0; i < TOTAL_COLOR; i++) {
+        count_tbl[i] = layers * layers;
     }
 
-    for (it = 0; it < TOTAL_COLOR; it++) {
-        color_t *face_ptr = (color_t *) cube->faces[it];
-        int i;
-        for (i = 0; i < layers * layers; i++) {
-            count_tbl[face_ptr[i]]--;
+    for (i = 0; i < TOTAL_COLOR; i++) {
+        color_t *face_ptr = (color_t *) cube->faces[i];
+        uint32_t j;
+        for (j = 0; j < layers * layers; j++) {
+            count_tbl[face_ptr[j]]--;
         }
     }
 
-    for (it = 0; it < TOTAL_COLOR; it++) {
-        if (count_tbl[it] != 0)
+    for (i = 0; i < TOTAL_COLOR; i++) {
+        if (count_tbl[i] != 0)
             return false;
     }
     return true;
@@ -34,7 +34,8 @@ bool_t opposite_color(color_t c1, color_t c2) {
 }
 
 bool_t valid_centralpieces(cube_t *cube) {
-    int layers = cube->layers, center = layers * layers / 2;
+    uint16_t layers = cube->layers;
+    uint32_t center = layers * layers / 2;
     if (layers % 2 == 0)
         return false;
 
@@ -54,7 +55,8 @@ bool_t is_valid_3x3x3(cube_t *cube) {
 }
 
 bool_t centralpieces_solved(cube_t *cube) {
-    int layers = cube->layers, center = layers * layers / 2;
+    uint16_t layers = cube->layers;
+    uint32_t center = layers * layers / 2;
     if (layers % 2 == 0)
         return true;
 
@@ -69,7 +71,8 @@ bool_t centralpieces_solved(cube_t *cube) {
 }
 
 void reset_coordinate(cube_t *cube) {
-    int layers = cube->layers, center = layers * layers / 2;
+    uint16_t layers = cube->layers;
+    uint32_t center = layers * layers / 2;
     if (layers % 2 == 0 && !centralpieces_solved(cube))
         return;
 

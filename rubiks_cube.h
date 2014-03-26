@@ -30,17 +30,17 @@ typedef enum {
 } step_t;
 
 typedef struct {
-    unsigned int layers;
+    uint16_t layers;
     color_t *faces[TOTAL_COLOR];
     color_t *top, *bottom, *front, *back, *right, *left;
 } cube_t;
 
 cube_t *create_3x3x3(void);
-cube_t *create_cube(unsigned int layers);
+cube_t *create_cube(uint16_t layers);
 void destroy_cube(cube_t *cube);
 cube_t *clone_cube(cube_t *cube);
 
-void move(cube_t *cube, step_t step, unsigned int start_l, unsigned int end_l);
+void move(cube_t *cube, step_t step, uint16_t start_l, uint16_t end_l);
 void reset_coordinate(cube_t *cube);
 
 #endif /* RUBIKS_CUBE_H_ */
