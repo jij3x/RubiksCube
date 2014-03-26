@@ -10,7 +10,7 @@
 #define SWAP(a,b) do { a^=b; b^=a; a^=b; } while(0)
 
 typedef enum {
-	false = 0, true = 1
+    false = 0, true = 1
 } bool_t;
 
 typedef unsigned long uint64_t;
