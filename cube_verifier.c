@@ -1,6 +1,6 @@
 #include "cube_verifier.h"
 
-bool_t valid_total_color(cube_t *cube) {
+bool valid_total_color(cube_t *cube) {
     int count_tbl[TOTAL_COLOR], layers = cube->layers;
     color_t i;
     for (i = 0; i < TOTAL_COLOR; i++) {
@@ -22,7 +22,7 @@ bool_t valid_total_color(cube_t *cube) {
     return true;
 }
 
-bool_t opposite_color(color_t c1, color_t c2) {
+bool opposite_color(color_t c1, color_t c2) {
     if ((c1 == WHITE && c2 == YELLOW) || (c1 == YELLOW && c2 == WHITE))
         return true;
     if ((c1 == RED && c2 == ORANGE) || (c1 == ORANGE && c2 == RED))
@@ -33,7 +33,7 @@ bool_t opposite_color(color_t c1, color_t c2) {
     return false;
 }
 
-bool_t valid_centralpieces(cube_t *cube) {
+bool valid_centralpieces(cube_t *cube) {
     uint16_t layers = cube->layers;
     uint32_t center = layers * layers / 2;
     if (layers % 2 == 0)
@@ -47,14 +47,14 @@ bool_t valid_centralpieces(cube_t *cube) {
     return true;
 }
 
-bool_t is_valid_3x3x3(cube_t *cube) {
+bool is_valid_3x3x3(cube_t *cube) {
     if (!valid_total_color(cube) || !valid_centralpieces(cube) || cube->layers != 3)
         return false;
 
     return true;
 }
 
-bool_t centralpieces_solved(cube_t *cube) {
+bool centralpieces_solved(cube_t *cube) {
     uint16_t layers = cube->layers;
     uint32_t center = layers * layers / 2;
     if (layers % 2 == 0)

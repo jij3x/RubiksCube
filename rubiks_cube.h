@@ -31,7 +31,6 @@ typedef enum {
 
 typedef struct {
     uint16_t layers;
-    color_t *faces[TOTAL_COLOR];
     color_t *top, *bottom, *front, *back, *right, *left;
 } cube_t;
 
