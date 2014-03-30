@@ -107,11 +107,16 @@ void rotate_face_180(color_t *face_ptr, lyrnum_t layers) {
     }
 }
 
+static inline void normalize_layers(cube_t *cube, lyrnum_t *start_l, lyrnum_t *end_l) {
+    if (*start_l > *end_l)
+        SWAP(*start_l, *end_l);
+
+    *start_l = fmin(cube->layers - 1, *start_l);
+    *end_l = fmin(cube->layers - 1, *end_l);
+}
+
 void rotate_x_90_cw(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x) {
-    if (start_x > end_x)
-        SWAP(start_x, end_x);
-    start_x = fmin(cube->layers - 1, start_x);
-    end_x = fmin(cube->layers - 1, end_x);
+    normalize_layers(cube, &start_x, &end_x);
 
     lyrnum_t layers = cube->layers;
     color_t (*yellow)[layers] = (color_t (*)[layers]) cube->faces[YELLOW];
@@ -137,10 +142,7 @@ void rotate_x_90_cw(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x) {
 }
 
 void rotate_x_90_c_cw(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x) {
-    if (start_x > end_x)
-        SWAP(start_x, end_x);
-    start_x = fmin(cube->layers - 1, start_x);
-    end_x = fmin(cube->layers - 1, end_x);
+    normalize_layers(cube, &start_x, &end_x);
 
     lyrnum_t layers = cube->layers;
     color_t (*yellow)[layers] = (color_t (*)[layers]) cube->faces[YELLOW];
@@ -166,10 +168,7 @@ void rotate_x_90_c_cw(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x) {
 }
 
 void rotate_x_180(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x) {
-    if (start_x > end_x)
-        SWAP(start_x, end_x);
-    start_x = fmin(cube->layers - 1, start_x);
-    end_x = fmin(cube->layers - 1, end_x);
+    normalize_layers(cube, &start_x, &end_x);
 
     lyrnum_t layers = cube->layers;
     color_t (*yellow)[layers] = (color_t (*)[layers]) cube->faces[YELLOW];
@@ -197,10 +196,7 @@ void rotate_x_180(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x) {
 }
 
 void rotate_y_90_cw(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y) {
-    if (start_y > end_y)
-        SWAP(start_y, end_y);
-    start_y = fmin(cube->layers - 1, start_y);
-    end_y = fmin(cube->layers - 1, end_y);
+    normalize_layers(cube, &start_y, &end_y);
 
     lyrnum_t layers = cube->layers;
     color_t (*blue)[layers] = (color_t (*)[layers]) cube->faces[BLUE];
@@ -226,10 +222,7 @@ void rotate_y_90_cw(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y) {
 }
 
 void rotate_y_90_c_cw(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y) {
-    if (start_y > end_y)
-        SWAP(start_y, end_y);
-    start_y = fmin(cube->layers - 1, start_y);
-    end_y = fmin(cube->layers - 1, end_y);
+    normalize_layers(cube, &start_y, &end_y);
 
     lyrnum_t layers = cube->layers;
     color_t (*blue)[layers] = (color_t (*)[layers]) cube->faces[BLUE];
@@ -255,10 +248,7 @@ void rotate_y_90_c_cw(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y) {
 }
 
 void rotate_y_180(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y) {
-    if (start_y > end_y)
-        SWAP(start_y, end_y);
-    start_y = fmin(cube->layers - 1, start_y);
-    end_y = fmin(cube->layers - 1, end_y);
+    normalize_layers(cube, &start_y, &end_y);
 
     lyrnum_t layers = cube->layers;
     color_t (*blue)[layers] = (color_t (*)[layers]) cube->faces[BLUE];
@@ -286,10 +276,7 @@ void rotate_y_180(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y) {
 }
 
 void rotate_z_90_cw(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z) {
-    if (start_z > end_z)
-        SWAP(start_z, end_z);
-    start_z = fmin(cube->layers - 1, start_z);
-    end_z = fmin(cube->layers - 1, end_z);
+    normalize_layers(cube, &start_z, &end_z);
 
     lyrnum_t layers = cube->layers;
     color_t (*orange)[layers] = (color_t (*)[layers]) cube->faces[ORANGE];
@@ -315,10 +302,7 @@ void rotate_z_90_cw(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z) {
 }
 
 void rotate_z_90_c_cw(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z) {
-    if (start_z > end_z)
-        SWAP(start_z, end_z);
-    start_z = fmin(cube->layers - 1, start_z);
-    end_z = fmin(cube->layers - 1, end_z);
+    normalize_layers(cube, &start_z, &end_z);
 
     lyrnum_t layers = cube->layers;
     color_t (*orange)[layers] = (color_t (*)[layers]) cube->faces[ORANGE];
@@ -344,10 +328,7 @@ void rotate_z_90_c_cw(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z) {
 }
 
 void rotate_z_180(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z) {
-    if (start_z > end_z)
-        SWAP(start_z, end_z);
-    start_z = fmin(cube->layers - 1, start_z);
-    end_z = fmin(cube->layers - 1, end_z);
+    normalize_layers(cube, &start_z, &end_z);
 
     lyrnum_t layers = cube->layers;
     color_t (*orange)[layers] = (color_t (*)[layers]) cube->faces[ORANGE];
