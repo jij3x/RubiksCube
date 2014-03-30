@@ -1,143 +1,112 @@
 #include "cube_verifier.h"
 
-bool is_valid_3x3x3(cube_t *cube) {
+bool valid_total_color(cube_t *cube) {
     return true;
 }
-/*
-bool valid_total_color(cube_t *cube) {
-    int count_tbl[TOTAL_COLOR], layers = cube->layers;
-    color_t i;
-    for (i = 0; i < TOTAL_COLOR; i++) {
-        count_tbl[i] = layers * layers;
-    }
 
-    for (i = 0; i < TOTAL_COLOR; i++) {
-        color_t *face_ptr = (color_t *) cube->faces[i];
-        uint32_t j;
-        for (j = 0; j < layers * layers; j++) {
-            count_tbl[face_ptr[j]]--;
-        }
-    }
+bool valid_hands(cube_t *cube) {
+    if (opp_color[cube->hand_idx[YELLOW]] != cube->hand_idx[WHITE]
+            || opp_color[cube->hand_idx[RED]] != cube->hand_idx[ORANGE]
+            || opp_color[cube->hand_idx[BLUE]] != cube->hand_idx[GREEN])
+        return false;
 
-    for (i = 0; i < TOTAL_COLOR; i++) {
-        if (count_tbl[i] != 0)
+    for (hand_t i = 0; i < TOTAL_HANDS; i++) {
+        if (cube->hands[i] != cube->faces[cube->hand_idx[i]])
             return false;
     }
-    return true;
-}
-
-bool opposite_color(color_t c1, color_t c2) {
-    if ((c1 == WHITE && c2 == YELLOW) || (c1 == YELLOW && c2 == WHITE))
-        return true;
-    if ((c1 == RED && c2 == ORANGE) || (c1 == ORANGE && c2 == RED))
-        return true;
-    if ((c1 == BLUE && c2 == GREEN) || (c1 == GREEN && c2 == BLUE))
-        return true;
-
-    return false;
-}
-
-bool valid_centralpieces(cube_t *cube) {
-    uint16_t layers = cube->layers;
-    uint32_t center = layers * layers / 2;
-    if (layers % 2 == 0)
-        return false;
-
-    if (opposite_color(cube->left[center], cube->right[center])
-            && opposite_color(cube->front[center], cube->back[center])
-            && opposite_color(cube->top[center], cube->bottom[center]))
-        return true;
-
-    return true;
-}
-
-bool is_valid_3x3x3(cube_t *cube) {
-    if (!valid_total_color(cube) || !valid_centralpieces(cube) || cube->layers != 3)
-        return false;
 
     return true;
 }
 
 bool centralpieces_solved(cube_t *cube) {
-    uint16_t layers = cube->layers;
-    uint32_t center = layers * layers / 2;
-    if (layers % 2 == 0)
+    if (cube->layers % 2 == 0)
         return true;
 
-    color_t it;
-    for (it = 0; it < TOTAL_COLOR; it++) {
-        if (!(cube->faces[it][center] == cube->faces[it][center + 1]
-                && cube->faces[it][center] == cube->faces[it][center - 1]
-                && cube->faces[it][center] == cube->faces[it][center - 2]))
+    lyrnum_t center = pow(cube->layers, 2) / 2;
+    for (color_t i = 0; i < TOTAL_COLORS; i++) {
+        if (cube->faces[i][center] != cube->faces[i][center + 1]
+                || cube->faces[i][center] != cube->faces[i][center - 1]
+                || cube->faces[i][center] != cube->faces[i][center - 2])
             return false;
     }
+
     return true;
 }
 
-void reset_coordinate(cube_t *cube) {
-    uint16_t layers = cube->layers;
-    uint32_t center = layers * layers / 2;
-    if (layers % 2 == 0 && !centralpieces_solved(cube))
-        return;
+bool valid_centralpieces(cube_t *cube) {
+    if (!centralpieces_solved(cube))
+        return false;
 
-    switch (cube->front[center]) {
-    case RED:
-        move(cube, BOTTOM_CW90, 0, cube->layers - 1);
-        break;
-    case ORANGE:
-        move(cube, BOTTOM_CCW90, 0, cube->layers - 1);
-        break;
-    case WHITE:
-        move(cube, RIGHT_CCW90, 0, cube->layers - 1);
-        break;
-    case YELLOW:
-        move(cube, RIGHT_CW90, 0, cube->layers - 1);
-        break;
-    case GREEN:
-        move(cube, BOTTOM_180, 0, cube->layers - 1);
-        break;
-    default:
-        break;
-    }
+    lyrnum_t center = pow(cube->layers, 2) / 2;
+    if (opp_color[cube->faces[YELLOW][center]] == cube->faces[WHITE][center]
+            && opp_color[cube->faces[RED][center]] == cube->faces[ORANGE][center]
+            && opp_color[cube->faces[BLUE][center]] == cube->faces[GREEN][center])
+        return true;
 
-    switch (cube->top[center]) {
-    case RED:
-        move(cube, FRONT_CW90, 0, cube->layers - 1);
-        break;
-    case ORANGE:
-        move(cube, FRONT_CCW90, 0, cube->layers - 1);
-        break;
-    case BLUE:
-        move(cube, RIGHT_CCW90, 0, cube->layers - 1);
-        break;
-    case GREEN:
-        move(cube, RIGHT_CW90, 0, cube->layers - 1);
-        break;
-    case YELLOW:
-        move(cube, RIGHT_180, 0, cube->layers - 1);
-        break;
-    default:
-        break;
-    }
-
-    switch (cube->right[center]) {
-    case BLUE:
-        move(cube, BOTTOM_CCW90, 0, cube->layers - 1);
-        break;
-    case GREEN:
-        move(cube, BOTTOM_CW90, 0, cube->layers - 1);
-        break;
-    case WHITE:
-        move(cube, RIGHT_CCW90, 0, cube->layers - 1);
-        break;
-    case YELLOW:
-        move(cube, RIGHT_CW90, 0, cube->layers - 1);
-        break;
-    case ORANGE:
-        move(cube, BOTTOM_180, 0, cube->layers - 1);
-        break;
-    default:
-        break;
-    }
+    return true;
 }
-*/
+
+bool valid_edgeblocks(cube_t *cube) {
+    return true;
+}
+
+bool valid_cornorblocks(cube_t *cube) {
+    return true;
+}
+
+bool is_valid_cube(cube_t *cube) {
+    if (!valid_hands(cube))
+        return false;
+    if (!valid_total_color(cube))
+        return false;
+    if (!valid_centralpieces(cube))
+        return false;
+    if (!valid_edgeblocks(cube))
+        return false;
+    if (!valid_cornorblocks(cube))
+        return false;
+
+    return true;
+}
+
+bool is_valid_3x3x3(cube_t *cube) {
+    if (cube->layers != 3 || !is_valid_cube(cube))
+        return false;
+
+    return true;
+}
+
+bool identical_cubes(cube_t *cube1, cube_t *cube2) {
+    if (cube1->layers != cube2->layers)
+        return false;
+
+    if (cube1->layers % 2 == 0) {
+        for (color_t i; i < TOTAL_COLORS; i++) {
+            for (lyrnum_t j; j < pow(cube1->layers, 2); j++) {
+                if (cube1->faces[i][j] != cube2->faces[i][j])
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    // TODO central pieces will drift in even layer cubes!!
+
+    return false;
+}
+
+bool is_solved_cube(cube_t *cube) {
+    if (!is_valid_cube(cube))
+        return false;
+
+    for (color_t i = 0; i < TOTAL_COLORS; i++) {
+        color_t sample = cube->faces[i][0];
+        for (lyrnum_t j = 1; j < pow(cube->layers, 2); j++) {
+            if (cube->hands[i][j] != sample)
+                return false;
+        }
+    }
+
+    return true;
+}

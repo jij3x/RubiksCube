@@ -6,8 +6,7 @@
 #include "cube_verifier.h"
 
 int main(void) {
-    //cube_t *cube = create_3x3x3();
-    cube_t *cube = create_cube(4096);
+    cube_t *cube = create_cube(3);
 
     if (is_valid_3x3x3(cube) == true)
         printf("valid 3x3x3!!\n");
@@ -18,7 +17,8 @@ int main(void) {
     int time_spent;
     begin = clock();
 
-    move(cube, RIGHT_CW90, 0, 4096);
+    move_cube(cube, RIGHT_HAND, R_90_CW, 0, 0);
+    //rotate_x_90_cw(cube, 2,2);
 
     end = clock();
     time_spent = (int) (end - begin);

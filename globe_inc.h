@@ -8,7 +8,8 @@
 #include <math.h>
 #include <string.h>
 
-#define SWAP(A,B) do { A^=B; A^=B; A^=B; } while(0)
+#define SWAP(A,B) do { A^=B; B^=A; A^=B; } while(0)
+
 #define ALIGNMENT 16
 
 #endif /* GLOBE_INC_H_ */
