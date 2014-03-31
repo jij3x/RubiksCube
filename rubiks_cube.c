@@ -42,6 +42,7 @@ void destroy_cube(cube_t *cube) {
     }
 
     free(cube);
+    cube = NULL;
 }
 
 cube_t *clone_cube(cube_t *cube) {
@@ -355,35 +356,33 @@ void rotate_z_180(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z) {
         rotate_face_180(cube->faces[BLUE], layers);
 }
 
-typedef void (*rotate)(cube_t *, lyrnum_t, lyrnum_t);
-static const rotate rotates[TOTAL_COLORS * TOTAL_ROTATIONS] = {
-// relative to absolute rotation mapping
-
-        NULL,// YELLOW : NO_ROTATION
+typedef void (*rotate_func_t)(cube_t *, lyrnum_t, lyrnum_t);
+static const rotate_func_t rotates[TOTAL_COLORS * TOTAL_ROTATIONS] = {
+// comment to accommodate IDE's formatter
+        NULL,//               YELLOW : NO_ROTATION
         &rotate_y_90_c_cw, // YELLOW : R_90_CW
-        &rotate_y_90_cw, // YELLOW : R_90_C_CW
-        &rotate_y_180, // YELLOW : R_180
-        NULL, // WHITE : NO_ROTATION
-        &rotate_y_90_cw, // WHITE : R_90_CW
+        &rotate_y_90_cw, //   YELLOW : R_90_C_CW
+        &rotate_y_180, //     YELLOW : R_180
+        NULL, //              WHITE : NO_ROTATION
+        &rotate_y_90_cw, //   WHITE : R_90_CW
         &rotate_y_90_c_cw, // WHITE : R_90_C_CW
-        &rotate_y_180, // WHITE : R_180
-        NULL, // RED : NO_ROTATION
-        &rotate_x_90_cw, // RED : R_90_CW
+        &rotate_y_180, //     WHITE : R_180
+        NULL, //              RED : NO_ROTATION
+        &rotate_x_90_cw, //   RED : R_90_CW
         &rotate_x_90_c_cw, // RED : R_90_C_CW
-        &rotate_x_180, // RED : R_180
-        NULL, // ORANGE : NO_ROTATION
+        &rotate_x_180, //     RED : R_180
+        NULL, //              ORANGE : NO_ROTATION
         &rotate_x_90_c_cw, // ORANGE : R_90_CW
-        &rotate_x_90_cw, // ORANGE : R_90_C_CW
-        &rotate_x_180, // ORANGE : R_180
-        NULL, // BLUE : NO_ROTATION
-        &rotate_z_90_cw, // BLUE : R_90_CW
+        &rotate_x_90_cw, //   ORANGE : R_90_C_CW
+        &rotate_x_180, //     ORANGE : R_180
+        NULL, //              BLUE : NO_ROTATION
+        &rotate_z_90_cw, //   BLUE : R_90_CW
         &rotate_z_90_c_cw, // BLUE : R_90_C_CW
-        &rotate_z_180, // BLUE : R_180
-        NULL, // GREEN : NO_ROTATION
+        &rotate_z_180, //     BLUE : R_180
+        NULL, //              GREEN : NO_ROTATION
         &rotate_z_90_c_cw, // GREEN : R_90_CW
-        &rotate_z_90_cw, // GREEN : R_90_C_CW
-        &rotate_z_180 // GREEN : R_180
-
+        &rotate_z_90_cw, //   GREEN : R_90_C_CW
+        &rotate_z_180 //      GREEN : R_180
         };
 
 void move_cube(cube_t *cube, hand_t hand, rotation_t rotation, lyrnum_t start_l, lyrnum_t end_l) {
@@ -543,88 +542,144 @@ static inline void cpon_z_180(cube_t * cube) {
 void flip_cube(cube_t *cube, axis_t axis, rotation_t rotation) {
     assert(axis < TOTAL_AXIS && rotation < TOTAL_ROTATIONS);
 
-    if (axis == AXIS_X) {
-        if (rotation == R_90_CW)
+    switch (axis) {
+    case AXIS_X:
+        switch (rotation) {
+        case R_90_CW:
             cpon_x_90_cw(cube);
-        else if (rotation == R_90_C_CW)
+            break;
+        case R_90_C_CW:
             cpon_x_90_c_cw(cube);
-        else if (rotation == R_180)
+            break;
+        case R_180:
             cpon_x_180(cube);
-    } else if (axis == AXIS_Y) {
-        if (rotation == R_90_CW)
+        }
+        break;
+    case AXIS_Y:
+        switch (rotation) {
+        case R_90_CW:
             cpon_y_90_cw(cube);
-        else if (rotation == R_90_C_CW)
+            break;
+        case R_90_C_CW:
             cpon_y_90_c_cw(cube);
-        else if (rotation == R_180)
+            break;
+        case R_180:
             cpon_y_180(cube);
-    } else {
-        if (rotation == R_90_CW)
+        }
+        break;
+    case AXIS_Z:
+        switch (rotation) {
+        case R_90_CW:
             cpon_z_90_cw(cube);
-        else if (rotation == R_90_C_CW)
+            break;
+        case R_90_C_CW:
             cpon_z_90_c_cw(cube);
-        else if (rotation == R_180)
+            break;
+        case R_180:
             cpon_z_180(cube);
+        }
+    }
+}
+
+typedef void (*flip_func_t)(cube_t *);
+
+typedef union mof_func_u {
+    rotate_func_t rotate;
+    flip_func_t flip;
+} mof_func_t;
+
+static const mof_func_t mofs[TOTAL_MOFS] = {
+// comment to accommodate IDE's formatter
+        (mof_func_t) &rotate_y_90_c_cw, // TOP_R90_CW
+        (mof_func_t) &rotate_y_90_cw, //   TOP_R90_C_CW
+        (mof_func_t) &rotate_y_180, //     TOP_R180
+        (mof_func_t) &rotate_y_90_cw, //   BOTTOM_R90_CW
+        (mof_func_t) &rotate_y_90_c_cw, // BOTTOM_R90_C_CW
+        (mof_func_t) &rotate_y_180, //     BOTTOM_R180
+        (mof_func_t) &rotate_x_90_cw, //   RIGHT_R90_CW
+        (mof_func_t) &rotate_x_90_c_cw, // RIGHT_R90_C_CW
+        (mof_func_t) &rotate_x_180, //     RIGHT_R180
+        (mof_func_t) &rotate_x_90_c_cw, // LEFT_R90_CW
+        (mof_func_t) &rotate_x_90_cw, //   LEFT_R90_C_CW
+        (mof_func_t) &rotate_x_180, //     LEFT_R180
+        (mof_func_t) &rotate_z_90_cw, //   FRONT_R90_CW
+        (mof_func_t) &rotate_z_90_c_cw, // FRONT_R90_C_CW
+        (mof_func_t) &rotate_z_180, //     FRONT_R180
+        (mof_func_t) &rotate_z_90_c_cw, // BACK_R90_CW
+        (mof_func_t) &rotate_z_90_cw, //   BACK_R90_C_CW
+        (mof_func_t) &rotate_z_180, //     BACK_R180
+        (mof_func_t) &cpon_x_90_cw, //     X_R90_CW
+        (mof_func_t) &cpon_x_90_c_cw, //   X_R90_C_CW
+        (mof_func_t) &cpon_x_180, //       X_R180
+        (mof_func_t) &cpon_y_90_cw, //     Y_R90_CW
+        (mof_func_t) &cpon_y_90_c_cw, //   Y_R90_C_CW
+        (mof_func_t) &cpon_y_180, //       Y_R180
+        (mof_func_t) &cpon_z_90_cw, //     Z_R90_CW
+        (mof_func_t) &cpon_z_90_c_cw, //   Z_R90_C_CW
+        (mof_func_t) &cpon_z_180 //        Z_R180
+        };
+
+void maneuver_cube(cube_t *cube, sll_t *step_list) {
+    sll_node_t *node;
+    sll_reset_iter(step_list);
+    while ((node = sll_get_next(step_list))) {
+        mvrstp_t *step = (mvrstp_t *)node->elem_ptr;
+        if (step->mof < X_R90_CW) {
+            mofs[step->mof].rotate(cube, step->start_l, step->end_l);
+        } else {
+            mofs[step->mof].flip(cube);
+        }
     }
 }
 
 void reset_coordinate(cube_t *cube) {
     switch (cube->hand_idx[TOP_HAND]) {
+    case YELLOW:
     case WHITE:
-        flip_cube(cube, AXIS_Z, R_180);
+        flip_cube(cube, AXIS_Z, (cube->hand_idx[TOP_HAND] == WHITE ? R_180 : NO_ROTATION));
+        switch (cube->hand_idx[RIGHT_HAND]) {
+        case RED:
+            break;
+        case ORANGE:
+            flip_cube(cube, AXIS_Y, R_180);
+            break;
+        case BLUE:
+            flip_cube(cube, AXIS_Y, R_90_C_CW);
+            break;
+        case GREEN:
+            flip_cube(cube, AXIS_Y, R_90_CW);
+        }
         break;
     case RED:
-        flip_cube(cube, AXIS_Z, R_90_CW);
-        break;
     case ORANGE:
-        flip_cube(cube, AXIS_Z, R_90_C_CW);
+        flip_cube(cube, AXIS_Z, (cube->hand_idx[TOP_HAND] == RED ? R_90_CW : R_90_C_CW));
+        switch (cube->hand_idx[TOP_HAND]) {
+        case YELLOW:
+            break;
+        case WHITE:
+            flip_cube(cube, AXIS_X, R_180);
+            break;
+        case BLUE:
+            flip_cube(cube, AXIS_X, R_90_C_CW);
+            break;
+        case GREEN:
+            flip_cube(cube, AXIS_X, R_180);
+        }
         break;
     case BLUE:
-        flip_cube(cube, AXIS_X, R_90_C_CW);
-        break;
     case GREEN:
-        flip_cube(cube, AXIS_X, R_90_CW);
-        break;
-    default:
-        break;
-    }
-
-    switch (cube->hand_idx[RIGHT_HAND]) {
-    case WHITE:
-        flip_cube(cube, AXIS_Z, R_90_CW);
-        break;
-    case YELLOW:
-        flip_cube(cube, AXIS_Z, R_90_C_CW);
-        break;
-    case ORANGE:
-        flip_cube(cube, AXIS_Y, R_180);
-        break;
-    case BLUE:
-        flip_cube(cube, AXIS_Y, R_90_CW);
-        break;
-    case GREEN:
-        flip_cube(cube, AXIS_Y, R_90_C_CW);
-        break;
-    default:
-        break;
-    }
-
-    switch (cube->hand_idx[FRONT_HAND]) {
-    case WHITE:
-        flip_cube(cube, AXIS_X, R_90_C_CW);
-        break;
-    case YELLOW:
-        flip_cube(cube, AXIS_X, R_90_CW);
-        break;
-    case RED:
-        flip_cube(cube, AXIS_Y, R_90_CW);
-        break;
-    case ORANGE:
-        flip_cube(cube, AXIS_Y, R_90_C_CW);
-        break;
-    case GREEN:
-        flip_cube(cube, AXIS_Y, R_180);
-        break;
-    default:
-        break;
+        flip_cube(cube, AXIS_X, (cube->hand_idx[TOP_HAND] == BLUE ? R_90_C_CW : R_90_CW));
+        switch (cube->hand_idx[TOP_HAND]) {
+        case YELLOW:
+            break;
+        case WHITE:
+            flip_cube(cube, AXIS_Z, R_180);
+            break;
+        case RED:
+            flip_cube(cube, AXIS_Z, R_90_CW);
+            break;
+        case ORANGE:
+            flip_cube(cube, AXIS_Z, R_90_C_CW);
+        }
     }
 }

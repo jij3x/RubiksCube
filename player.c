@@ -6,18 +6,23 @@
 #include "cube_verifier.h"
 
 int main(void) {
-    cube_t *cube = create_cube(3);
+    cube_t *cube = create_cube(4);
+    cube_t *testing_cube = clone_cube(cube);
 
-    if (is_valid_3x3x3(cube) == true)
-        printf("valid 3x3x3!!\n");
-    else
-        printf("invalid 3x3x3!!\n");
+    rotate_x_90_cw(testing_cube, 0, testing_cube->layers - 1);
+    rotate_y_90_cw(testing_cube, 0, testing_cube->layers - 1);
+    rotate_z_90_cw(testing_cube, 0, testing_cube->layers - 1);
 
     clock_t begin, end;
     int time_spent;
     begin = clock();
 
-    move_cube(cube, RIGHT_HAND, R_90_CW, 0, 0);
+    if (identical_cubes(cube, testing_cube))
+        printf("identical!!\n");
+    else
+        printf("different cubes!!\n");
+
+    //move_cube(cube, RIGHT_HAND, R_90_CW, 0, 0);
     //rotate_x_90_cw(cube, 2,2);
 
     end = clock();

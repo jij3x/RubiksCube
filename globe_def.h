@@ -1,5 +1,5 @@
-#ifndef GLOBE_INC_H_
-#define GLOBE_INC_H_
+#ifndef GLOBE_DEF_H_
+#define GLOBE_DEF_H_
 
 #include <assert.h>
 #include <stdlib.h>
@@ -12,4 +12,4 @@
 
 #define ALIGNMENT 16
 
-#endif /* GLOBE_INC_H_ */
+#endif /* GLOBE_DEF_H_ */

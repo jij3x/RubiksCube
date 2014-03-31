@@ -1,7 +1,8 @@
 #ifndef RUBIKS_CUBE_H_
 #define RUBIKS_CUBE_H_
 
-#include "globe_inc.h"
+#include "globe_def.h"
+#include "comm_util.h"
 
 /*
  *     +---+
@@ -40,6 +41,43 @@ enum axis_e {
     AXIS_X = 0, AXIS_Y, AXIS_Z, TOTAL_AXIS
 };
 
+typedef uint8_t mof_t;
+enum mof_e {
+    TOP_R90_CW = 0,
+    TOP_R90_C_CW,
+    TOP_R180,
+    BOTTOM_R90_CW,
+    BOTTOM_R90_C_CW,
+    BOTTOM_R180,
+    RIGHT_R90_CW,
+    RIGHT_R90_C_CW,
+    RIGHT_R180,
+    LEFT_R90_CW,
+    LEFT_R90_C_CW,
+    LEFT_R180,
+    FRONT_R90_CW,
+    FRONT_R90_C_CW,
+    FRONT_R180,
+    BACK_R90_CW,
+    BACK_R90_C_CW,
+    BACK_R180,
+    X_R90_CW,
+    X_R90_C_CW,
+    X_R180,
+    Y_R90_CW,
+    Y_R90_C_CW,
+    Y_R180,
+    Z_R90_CW,
+    Z_R90_C_CW,
+    Z_R180,
+    TOTAL_MOFS
+};
+
+typedef struct mvrstp {
+    mof_t mof;
+    lyrnum_t start_l, end_l;
+} mvrstp_t;
+
 typedef struct cube {
     const lyrnum_t layers;
     const lyrnum_t raw_face_size;
@@ -65,6 +103,7 @@ void rotate_z_180(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z);
 
 void flip_cube(cube_t *cube, axis_t axis, rotation_t rotation);
 void move_cube(cube_t *cube, hand_t hand, rotation_t rotation, lyrnum_t start_l, lyrnum_t end_l);
+void maneuver_cube(cube_t *cube, sll_t *step_list);
 
 void reset_coordinate(cube_t *cube);
 
