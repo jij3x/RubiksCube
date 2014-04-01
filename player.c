@@ -6,24 +6,14 @@
 #include "cube_verifier.h"
 
 int main(void) {
-    cube_t *cube = create_cube(4);
-    cube_t *testing_cube = clone_cube(cube);
-
-    rotate_x_90_cw(testing_cube, 0, testing_cube->layers - 1);
-    rotate_y_90_cw(testing_cube, 0, testing_cube->layers - 1);
-    rotate_z_90_cw(testing_cube, 0, testing_cube->layers - 1);
+    cube_t *cube = create_cube(MAX_LAYERS);
 
     clock_t begin, end;
     int time_spent;
     begin = clock();
 
-    if (identical_cubes(cube, testing_cube))
-        printf("identical!!\n");
-    else
-        printf("different cubes!!\n");
-
-    //move_cube(cube, RIGHT_HAND, R_90_CW, 0, 0);
-    //rotate_x_90_cw(cube, 2,2);
+    turn_x_90_cw(cube, 0, cube->layers - 1);
+    printf("turning completed!\n");
 
     end = clock();
     time_spent = (int) (end - begin);

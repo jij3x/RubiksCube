@@ -24,6 +24,6 @@ void sll_append(sll_t *list, void *element);
 void sll_reset_iter(sll_t *list);
 sll_node_t *sll_get_next(sll_t *list);
 
-uint64_t djb2_hash(unsigned char *str);
+unsigned long djb2_hash(unsigned char *str);
 
 #endif /* COMM_UTIL_H_ */

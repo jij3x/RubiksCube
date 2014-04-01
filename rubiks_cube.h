@@ -36,31 +36,26 @@ enum rotation_e {
     NO_ROTATION = 0, R_90_CW, R_90_C_CW, R_180, TOTAL_ROTATIONS
 };
 
-typedef uint8_t axis_t;
-enum axis_e {
-    AXIS_X = 0, AXIS_Y, AXIS_Z, TOTAL_AXIS
-};
-
-typedef uint8_t mof_t;
-enum mof_e {
-    TOP_R90_CW = 0,
-    TOP_R90_C_CW,
-    TOP_R180,
-    BOTTOM_R90_CW,
-    BOTTOM_R90_C_CW,
-    BOTTOM_R180,
-    RIGHT_R90_CW,
-    RIGHT_R90_C_CW,
-    RIGHT_R180,
-    LEFT_R90_CW,
-    LEFT_R90_C_CW,
-    LEFT_R180,
-    FRONT_R90_CW,
-    FRONT_R90_C_CW,
-    FRONT_R180,
-    BACK_R90_CW,
-    BACK_R90_C_CW,
-    BACK_R180,
+typedef uint8_t move_t;
+enum move_e {
+    TOP_T90_CW = 0,
+    TOP_T90_C_CW,
+    TOP_T180,
+    BOTTOM_T90_CW,
+    BOTTOM_T90_C_CW,
+    BOTTOM_T180,
+    RIGHT_T90_CW,
+    RIGHT_T90_C_CW,
+    RIGHT_T180,
+    LEFT_T90_CW,
+    LEFT_T90_C_CW,
+    LEFT_T180,
+    FRONT_T90_CW,
+    FRONT_T90_C_CW,
+    FRONT_T180,
+    BACK_T90_CW,
+    BACK_T90_C_CW,
+    BACK_T180,
     X_R90_CW,
     X_R90_C_CW,
     X_R180,
@@ -70,13 +65,8 @@ enum mof_e {
     Z_R90_CW,
     Z_R90_C_CW,
     Z_R180,
-    TOTAL_MOFS
+    TOTAL_MOVES
 };
-
-typedef struct mvrstp {
-    mof_t mof;
-    lyrnum_t start_l, end_l;
-} mvrstp_t;
 
 typedef struct cube {
     const lyrnum_t layers;
@@ -84,27 +74,25 @@ typedef struct cube {
     color_t * const * const faces;
     color_t * const * const raw_faces;
     color_t *hands[TOTAL_HANDS];
-    color_t hand_idx[TOTAL_HANDS];
+    color_t hand_color[TOTAL_HANDS];
 } cube_t;
 
 cube_t *create_cube(lyrnum_t layers);
 void destroy_cube(cube_t *cube);
 cube_t *clone_cube(cube_t *cube);
 
-void rotate_x_90_cw(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x);
-void rotate_x_90_c_cw(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x);
-void rotate_x_180(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x);
-void rotate_y_90_cw(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y);
-void rotate_y_90_c_cw(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y);
-void rotate_y_180(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y);
-void rotate_z_90_cw(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z);
-void rotate_z_90_c_cw(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z);
-void rotate_z_180(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z);
+void turn_x_90_cw(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x);
+void turn_x_90_c_cw(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x);
+void turn_x_180(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x);
+void turn_y_90_cw(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y);
+void turn_y_90_c_cw(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y);
+void turn_y_180(cube_t *cube, lyrnum_t start_y, lyrnum_t end_y);
+void turn_z_90_cw(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z);
+void turn_z_90_c_cw(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z);
+void turn_z_180(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z);
 
-void flip_cube(cube_t *cube, axis_t axis, rotation_t rotation);
-void move_cube(cube_t *cube, hand_t hand, rotation_t rotation, lyrnum_t start_l, lyrnum_t end_l);
-void maneuver_cube(cube_t *cube, sll_t *step_list);
+void move_cube(cube_t *cube, move_t move, lyrnum_t start_l, lyrnum_t end_l);
 
-void reset_coordinate(cube_t *cube);
+void reset_coordinate(cube_t *cube) ;
 
 #endif /* RUBIKS_CUBE_H_ */
