@@ -29,8 +29,9 @@ cube_t *create_cube(lyrnum_t layers) {
     memcpy(cube, &init_cube, sizeof(cube_t));
 
     for (color_t i = 0; i < TOTAL_COLORS; i++) {
+        cube->face_offset[i] = NO_ROTATION;
         cube->hands[i] = cube->faces[i];
-        cube->hand_color[i] = i;
+        cube->hand_color[(hand_t) i] = i;
     }
 
     return cube;
@@ -51,8 +52,9 @@ cube_t *clone_cube(cube_t *cube) {
     for (color_t i = 0; i < TOTAL_COLORS; i++) {
         memcpy(clone->raw_faces[i], cube->raw_faces[i], clone->raw_face_size);
 
+        clone->face_offset[i] = cube->face_offset[i];
         clone->hand_color[i] = cube->hand_color[i];
-        clone->hands[i] = clone->faces[clone->hand_color[i]];
+        clone->hands[(hand_t) i] = clone->faces[clone->hand_color[i]];
     }
 
     return clone;
@@ -356,6 +358,14 @@ void turn_z_180(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z) {
         rotate_face_180(cube->faces[BLUE], layers);
 }
 
+static const rotation_t ra_tbl[TOTAL_ROTATIONS][TOTAL_ROTATIONS] = {
+// rotation add-on table
+        { NO_ROTATION, R_90_CW, R_90_C_CW, R_180 }, // NO_ROTATION + (NR, R90CW, R90CCW, R180)
+        { R_90_CW, R_180, NO_ROTATION, R_90_C_CW }, // R_90_CW + (NR, R90CW, R90CCW, R180)
+        { R_90_C_CW, NO_ROTATION, R_180, R_90_CW }, // R_90_C_CW + (NR, R90CW, R90CCW, R180)
+        { R_180, R_90_C_CW, R_90_CW, NO_ROTATION }  // R_180 + (NR, R90CW, R90CCW, R180)
+};
+
 void rotate_x_90_cw(cube_t * cube) {
     color_t *temp_face = cube->hands[FRONT_HAND];
     cube->hands[FRONT_HAND] = cube->hands[BOTTOM_HAND];
@@ -368,6 +378,15 @@ void rotate_x_90_cw(cube_t * cube) {
     cube->hand_color[BOTTOM_HAND] = cube->hand_color[BACK_HAND];
     cube->hand_color[BACK_HAND] = cube->hand_color[TOP_HAND];
     cube->hand_color[TOP_HAND] = temp_idx;
+
+    color_t righthand_c = cube->hand_color[RIGHT_HAND];
+    cube->face_offset[righthand_c] = ra_tbl[cube->face_offset[righthand_c]][R_90_CW];
+    color_t lefthand_c = cube->hand_color[LEFT_HAND];
+    cube->face_offset[lefthand_c] = ra_tbl[cube->face_offset[lefthand_c]][R_90_C_CW];
+    color_t backhand_c = cube->hand_color[BACK_HAND];
+    cube->face_offset[backhand_c] = ra_tbl[cube->face_offset[backhand_c]][R_180];
+    color_t bottomhand_c = cube->hand_color[BOTTOM_HAND];
+    cube->face_offset[bottomhand_c] = ra_tbl[cube->face_offset[bottomhand_c]][R_180];
 }
 
 void rotate_x_90_c_cw(cube_t * cube) {
@@ -382,13 +401,21 @@ void rotate_x_90_c_cw(cube_t * cube) {
     cube->hand_color[TOP_HAND] = cube->hand_color[BACK_HAND];
     cube->hand_color[BACK_HAND] = cube->hand_color[BOTTOM_HAND];
     cube->hand_color[BOTTOM_HAND] = temp_idx;
+
+    color_t righthand_c = cube->hand_color[RIGHT_HAND];
+    cube->face_offset[righthand_c] = ra_tbl[cube->face_offset[righthand_c]][R_90_C_CW];
+    color_t lefthand_c = cube->hand_color[LEFT_HAND];
+    cube->face_offset[lefthand_c] = ra_tbl[cube->face_offset[lefthand_c]][R_90_CW];
+    color_t backhand_c = cube->hand_color[BACK_HAND];
+    cube->face_offset[backhand_c] = ra_tbl[cube->face_offset[backhand_c]][R_180];
+    color_t tophand_c = cube->hand_color[TOP_HAND];
+    cube->face_offset[tophand_c] = ra_tbl[cube->face_offset[tophand_c]][R_180];
 }
 
 void rotate_x_180(cube_t * cube) {
     color_t *temp_face = cube->hands[FRONT_HAND];
     cube->hands[FRONT_HAND] = cube->hands[BACK_HAND];
     cube->hands[BACK_HAND] = temp_face;
-
     color_t temp_idx = cube->hand_color[FRONT_HAND];
     cube->hand_color[FRONT_HAND] = cube->hand_color[BACK_HAND];
     cube->hand_color[BACK_HAND] = temp_idx;
@@ -396,10 +423,18 @@ void rotate_x_180(cube_t * cube) {
     temp_face = cube->hands[TOP_HAND];
     cube->hands[TOP_HAND] = cube->hands[BOTTOM_HAND];
     cube->hands[BOTTOM_HAND] = temp_face;
-
     temp_idx = cube->hand_color[TOP_HAND];
     cube->hand_color[TOP_HAND] = cube->hand_color[BOTTOM_HAND];
     cube->hand_color[BOTTOM_HAND] = temp_idx;
+
+    color_t righthand_c = cube->hand_color[RIGHT_HAND];
+    cube->face_offset[righthand_c] = ra_tbl[cube->face_offset[righthand_c]][R_180];
+    color_t lefthand_c = cube->hand_color[LEFT_HAND];
+    cube->face_offset[lefthand_c] = ra_tbl[cube->face_offset[lefthand_c]][R_180];
+    color_t fronthand_c = cube->hand_color[FRONT_HAND];
+    cube->face_offset[fronthand_c] = ra_tbl[cube->face_offset[fronthand_c]][R_180];
+    color_t backhand_c = cube->hand_color[BACK_HAND];
+    cube->face_offset[backhand_c] = ra_tbl[cube->face_offset[backhand_c]][R_180];
 }
 
 void rotate_y_90_cw(cube_t * cube) {
@@ -414,6 +449,11 @@ void rotate_y_90_cw(cube_t * cube) {
     cube->hand_color[FRONT_HAND] = cube->hand_color[LEFT_HAND];
     cube->hand_color[LEFT_HAND] = cube->hand_color[BACK_HAND];
     cube->hand_color[BACK_HAND] = temp_idx;
+
+    color_t tophand_c = cube->hand_color[TOP_HAND];
+    cube->face_offset[tophand_c] = ra_tbl[cube->face_offset[tophand_c]][R_90_C_CW];
+    color_t bottomhand_c = cube->hand_color[BOTTOM_HAND];
+    cube->face_offset[bottomhand_c] = ra_tbl[cube->face_offset[bottomhand_c]][R_90_CW];
 }
 
 void rotate_y_90_c_cw(cube_t * cube) {
@@ -428,13 +468,17 @@ void rotate_y_90_c_cw(cube_t * cube) {
     cube->hand_color[BACK_HAND] = cube->hand_color[LEFT_HAND];
     cube->hand_color[LEFT_HAND] = cube->hand_color[FRONT_HAND];
     cube->hand_color[FRONT_HAND] = temp_idx;
+
+    color_t tophand_c = cube->hand_color[TOP_HAND];
+    cube->face_offset[tophand_c] = ra_tbl[cube->face_offset[tophand_c]][R_90_CW];
+    color_t bottomhand_c = cube->hand_color[BOTTOM_HAND];
+    cube->face_offset[bottomhand_c] = ra_tbl[cube->face_offset[bottomhand_c]][R_90_C_CW];
 }
 
 void rotate_y_180(cube_t * cube) {
     color_t *temp_face = cube->hands[RIGHT_HAND];
     cube->hands[RIGHT_HAND] = cube->hands[LEFT_HAND];
     cube->hands[LEFT_HAND] = temp_face;
-
     color_t temp_idx = cube->hand_color[RIGHT_HAND];
     cube->hand_color[RIGHT_HAND] = cube->hand_color[LEFT_HAND];
     cube->hand_color[LEFT_HAND] = temp_idx;
@@ -442,10 +486,14 @@ void rotate_y_180(cube_t * cube) {
     temp_face = cube->hands[FRONT_HAND];
     cube->hands[FRONT_HAND] = cube->hands[BACK_HAND];
     cube->hands[BACK_HAND] = temp_face;
-
     temp_idx = cube->hand_color[FRONT_HAND];
     cube->hand_color[FRONT_HAND] = cube->hand_color[BACK_HAND];
     cube->hand_color[BACK_HAND] = temp_idx;
+
+    color_t tophand_c = cube->hand_color[TOP_HAND];
+    cube->face_offset[tophand_c] = ra_tbl[cube->face_offset[tophand_c]][R_180];
+    color_t bottomhand_c = cube->hand_color[BOTTOM_HAND];
+    cube->face_offset[bottomhand_c] = ra_tbl[cube->face_offset[bottomhand_c]][R_180];
 }
 
 void rotate_z_90_cw(cube_t * cube) {
@@ -460,6 +508,19 @@ void rotate_z_90_cw(cube_t * cube) {
     cube->hand_color[TOP_HAND] = cube->hand_color[LEFT_HAND];
     cube->hand_color[LEFT_HAND] = cube->hand_color[BOTTOM_HAND];
     cube->hand_color[BOTTOM_HAND] = temp_idx;
+
+    color_t fronthand_c = cube->hand_color[FRONT_HAND];
+    cube->face_offset[fronthand_c] = ra_tbl[cube->face_offset[fronthand_c]][R_90_CW];
+    color_t backhand_c = cube->hand_color[BACK_HAND];
+    cube->face_offset[backhand_c] = ra_tbl[cube->face_offset[backhand_c]][R_90_C_CW];
+    color_t righthand_c = cube->hand_color[RIGHT_HAND];
+    cube->face_offset[righthand_c] = ra_tbl[cube->face_offset[righthand_c]][R_90_CW];
+    color_t lefthand_c = cube->hand_color[LEFT_HAND];
+    cube->face_offset[lefthand_c] = ra_tbl[cube->face_offset[lefthand_c]][R_90_CW];
+    color_t tophand_c = cube->hand_color[TOP_HAND];
+    cube->face_offset[tophand_c] = ra_tbl[cube->face_offset[tophand_c]][R_90_CW];
+    color_t bottomhand_c = cube->hand_color[BOTTOM_HAND];
+    cube->face_offset[bottomhand_c] = ra_tbl[cube->face_offset[bottomhand_c]][R_90_CW];
 }
 
 void rotate_z_90_c_cw(cube_t * cube) {
@@ -474,13 +535,25 @@ void rotate_z_90_c_cw(cube_t * cube) {
     cube->hand_color[BOTTOM_HAND] = cube->hand_color[LEFT_HAND];
     cube->hand_color[LEFT_HAND] = cube->hand_color[TOP_HAND];
     cube->hand_color[TOP_HAND] = temp_idx;
+
+    color_t fronthand_c = cube->hand_color[FRONT_HAND];
+    cube->face_offset[fronthand_c] = ra_tbl[cube->face_offset[fronthand_c]][R_90_C_CW];
+    color_t backhand_c = cube->hand_color[BACK_HAND];
+    cube->face_offset[backhand_c] = ra_tbl[cube->face_offset[backhand_c]][R_90_CW];
+    color_t righthand_c = cube->hand_color[RIGHT_HAND];
+    cube->face_offset[righthand_c] = ra_tbl[cube->face_offset[righthand_c]][R_90_C_CW];
+    color_t lefthand_c = cube->hand_color[LEFT_HAND];
+    cube->face_offset[lefthand_c] = ra_tbl[cube->face_offset[lefthand_c]][R_90_C_CW];
+    color_t tophand_c = cube->hand_color[TOP_HAND];
+    cube->face_offset[tophand_c] = ra_tbl[cube->face_offset[tophand_c]][R_90_C_CW];
+    color_t bottomhand_c = cube->hand_color[BOTTOM_HAND];
+    cube->face_offset[bottomhand_c] = ra_tbl[cube->face_offset[bottomhand_c]][R_90_C_CW];
 }
 
 void rotate_z_180(cube_t * cube) {
     color_t *temp_face = cube->hands[RIGHT_HAND];
     cube->hands[RIGHT_HAND] = cube->hands[LEFT_HAND];
     cube->hands[LEFT_HAND] = temp_face;
-
     color_t temp_idx = cube->hand_color[RIGHT_HAND];
     cube->hand_color[RIGHT_HAND] = cube->hand_color[LEFT_HAND];
     cube->hand_color[LEFT_HAND] = temp_idx;
@@ -488,10 +561,18 @@ void rotate_z_180(cube_t * cube) {
     temp_face = cube->hands[TOP_HAND];
     cube->hands[TOP_HAND] = cube->hands[BOTTOM_HAND];
     cube->hands[BOTTOM_HAND] = temp_face;
-
     temp_idx = cube->hand_color[TOP_HAND];
     cube->hand_color[TOP_HAND] = cube->hand_color[BOTTOM_HAND];
     cube->hand_color[BOTTOM_HAND] = temp_idx;
+
+    color_t fronthand_c = cube->hand_color[FRONT_HAND];
+    cube->face_offset[fronthand_c] = ra_tbl[cube->face_offset[fronthand_c]][R_180];
+    color_t backhand_c = cube->hand_color[BACK_HAND];
+    cube->face_offset[backhand_c] = ra_tbl[cube->face_offset[backhand_c]][R_180];
+    color_t righthand_c = cube->hand_color[RIGHT_HAND];
+    cube->face_offset[righthand_c] = ra_tbl[cube->face_offset[righthand_c]][R_180];
+    color_t lefthand_c = cube->hand_color[LEFT_HAND];
+    cube->face_offset[lefthand_c] = ra_tbl[cube->face_offset[lefthand_c]][R_180];
 }
 
 typedef void (*turn_func_t)(cube_t *, lyrnum_t, lyrnum_t);
@@ -502,7 +583,7 @@ typedef union move_func_u {
 } move_func_t;
 
 static const move_func_t move_ops[TOTAL_MOVES] = {
-// comment to accommodate IDE's formatter
+// (turn + rotate) functions
         (move_func_t) &turn_y_90_c_cw, // YELLOW hand: R_90_CW
         (move_func_t) &turn_y_90_cw, //   YELLOW hand: R_90_C_CW
         (move_func_t) &turn_y_180, //     YELLOW hand: R_180

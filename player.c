@@ -7,13 +7,16 @@
 
 int main(void) {
     cube_t *cube = create_cube(MAX_LAYERS);
+    cube_t *testing_cube = clone_cube(cube);
 
     clock_t begin, end;
     int time_spent;
     begin = clock();
 
-    turn_x_90_cw(cube, 0, cube->layers - 1);
-    printf("turning completed!\n");
+    if (same_cubes(cube, testing_cube))
+        printf("same!\n");
+    else
+        printf("different!\n");
 
     end = clock();
     time_spent = (int) (end - begin);
