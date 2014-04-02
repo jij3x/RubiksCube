@@ -7,7 +7,7 @@
 
 bool is_valid_cube(cube_t *cube);
 bool is_valid_3x3x3(cube_t *cube);
-bool same_cubes(cube_t *cube1, cube_t *cube2);
+bool identical_cubes(cube_t *restrict cube1, cube_t *restrict cube2);
 bool is_solved_cube(cube_t *cube);
 
 #endif /* CUBE_VERIFIER_H_ */

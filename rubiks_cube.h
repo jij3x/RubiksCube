@@ -26,9 +26,9 @@ enum color_e {
 
 static const color_t opp_color[TOTAL_COLORS] = { WHITE, YELLOW, ORANGE, RED, GREEN, BLUE };
 
-typedef uint8_t hand_t;
-enum hand_e {
-    TOP_HAND = 0, BOTTOM_HAND, RIGHT_HAND, LEFT_HAND, FRONT_HAND, BACK_HAND, TOTAL_HANDS
+typedef uint8_t side_t;
+enum side_e {
+    TOP_SIDE = 0, BOTTOM_SIDE, RIGHT_SIDE, LEFT_SIDE, FRONT_SIDE, BACK_SIDE, TOTAL_SIDES
 };
 
 typedef uint8_t rotation_t;
@@ -74,13 +74,14 @@ typedef struct cube {
     color_t * const * const faces;
     color_t * const * const raw_faces;
     rotation_t face_offset[TOTAL_COLORS];
-    color_t *hands[TOTAL_HANDS];
-    color_t hand_color[TOTAL_HANDS];
+    color_t *sides[TOTAL_SIDES];
+    color_t side_color[TOTAL_SIDES];
 } cube_t;
 
 cube_t *create_cube(lyrnum_t layers);
 void destroy_cube(cube_t *cube);
 cube_t *clone_cube(cube_t *cube);
+void reset_sides(cube_t *cube);
 
 void turn_x_90_cw(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x);
 void turn_x_90_c_cw(cube_t *cube, lyrnum_t start_x, lyrnum_t end_x);
@@ -95,27 +96,36 @@ void turn_z_180(cube_t *cube, lyrnum_t start_z, lyrnum_t end_z);
 // relative move base on perspective, which is changeable
 void move_cube(cube_t *cube, move_t move, lyrnum_t start_l, lyrnum_t end_l);
 
-// relative cube face read
-inline color_t read_face(cube_t *cube, hand_t hand, lyrnum_t y, lyrnum_t x) {
-    assert(hand < TOTAL_HANDS && y < cube->layers && x < cube->layers);
-
-    switch (cube->face_offset[cube->hand_color[hand]]) {
+inline void rotate_coord(cube_t *cube, side_t side, lyrnum_t *restrict y, lyrnum_t *restrict x) {
+    switch (cube->face_offset[cube->side_color[side]]) {
     case R_90_CW:
-        SWAP(y, x);
-        x = cube->layers - 1 - x;
+        SWAP(*y, *x);
+        *x = cube->layers - 1 - *x;
         break;
     case R_90_C_CW:
-        SWAP(y, x);
-        y = cube->layers - 1 - y;
+        SWAP(*y, *x);
+        *y = cube->layers - 1 - *y;
         break;
     case R_180:
-        x = cube->layers - 1 - x;
-        y = cube->layers - 1 - y;
+        *x = cube->layers - 1 - *x;
+        *y = cube->layers - 1 - *y;
     }
-
-    return ((color_t (*)[cube->layers]) cube->faces[cube->hand_color[hand]])[y][x];
 }
 
-void reset_coordinate(cube_t *cube);
+// relative cube face read
+inline color_t read_face(cube_t *cube, side_t side, lyrnum_t y, lyrnum_t x) {
+    assert(side < TOTAL_SIDES && y < cube->layers && x < cube->layers);
+
+    rotate_coord(cube, side, &y, &x);
+    return ((color_t (*)[cube->layers]) cube->faces[cube->side_color[side]])[y][x];
+}
+
+// relative cube face write
+inline void write_face(cube_t *cube, side_t side, lyrnum_t y, lyrnum_t x, color_t color) {
+    assert(side < TOTAL_SIDES && y < cube->layers && x < cube->layers);
+
+    rotate_coord(cube, side, &y, &x);
+    ((color_t (*)[cube->layers]) cube->faces[cube->side_color[side]])[y][x] = color;
+}
 
 #endif /* RUBIKS_CUBE_H_ */

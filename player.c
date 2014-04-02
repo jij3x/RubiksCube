@@ -13,7 +13,7 @@ int main(void) {
     int time_spent;
     begin = clock();
 
-    if (same_cubes(cube, testing_cube))
+    if (identical_cubes(cube, testing_cube))
         printf("same!\n");
     else
         printf("different!\n");
