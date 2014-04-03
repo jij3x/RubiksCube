@@ -1,4 +1,4 @@
-#include "cube_verifier.h"
+#include "cube_inspector.h"
 extern void rotate_coord(cube_t *cube, side_t side, lyrnum_t *restrict y, lyrnum_t *restrict x);
 extern inline color_t read_face(cube_t *cube, side_t side, lyrnum_t y, lyrnum_t x);
 
@@ -17,7 +17,94 @@ static inline bool valid_sides(cube_t *cube) {
     return true;
 }
 
+static inline bool valid_facerotations(cube_t *cube) {
+    cube_t *ref_cube = create_cube(MIN_LAYERS);
+
+    typedef uint8_t aln_t;
+    enum aln_e {
+        topside_aligned, rightside_aligned, frontside_aligned
+    };
+
+    aln_t side_aligned = topside_aligned;
+    switch (cube->side_color[TOP_SIDE]) {
+    case WHITE:
+        move_cube(ref_cube, X_R180, 0, 0);
+        break;
+    case RED:
+        move_cube(ref_cube, Z_R90_CW, 0, 0);
+        side_aligned = rightside_aligned;
+        break;
+    case ORANGE:
+        move_cube(ref_cube, Z_R90_C_CW, 0, 0);
+        side_aligned = rightside_aligned;
+        break;
+    case BLUE:
+        move_cube(ref_cube, Y_R90_C_CW, 0, 0);
+        side_aligned = frontside_aligned;
+        break;
+    case GREEN:
+        move_cube(ref_cube, Y_R90_CW, 0, 0);
+        side_aligned = frontside_aligned;
+    }
+
+    switch (side_aligned) {
+    case topside_aligned:
+        switch (cube->side_color[RIGHT_SIDE]) {
+        case ORANGE:
+            move_cube(ref_cube, Y_R180, 0, 0);
+            break;
+        case BLUE:
+            move_cube(ref_cube, Y_R90_C_CW, 0, 0);
+            break;
+        case GREEN:
+            move_cube(ref_cube, Y_R90_CW, 0, 0);
+        }
+        break;
+    case rightside_aligned:
+        switch (cube->side_color[TOP_SIDE]) {
+        case WHITE:
+            move_cube(ref_cube, X_R180, 0, 0);
+            break;
+        case BLUE:
+            move_cube(ref_cube, X_R90_C_CW, 0, 0);
+            break;
+        case GREEN:
+            move_cube(ref_cube, X_R90_CW, 0, 0);
+        }
+        break;
+    case frontside_aligned:
+        switch (cube->side_color[TOP_SIDE]) {
+        case WHITE:
+            move_cube(ref_cube, Z_R180, 0, 0);
+            break;
+        case RED:
+            move_cube(ref_cube, X_R90_CW, 0, 0);
+            break;
+        case ORANGE:
+            move_cube(ref_cube, X_R90_C_CW, 0, 0);
+        }
+    }
+
+    destroy_cube(ref_cube);
+
+    for (color_t i = 0; i < TOTAL_COLORS; i++) {
+        if (ref_cube->face_offset[i] != cube->face_offset[i])
+            return false;
+    }
+
+    return true;
+}
+
 static inline bool valid_total_color(cube_t *cube) {
+    lyrnum_t squares = (cube->layers - 1) / 2 + 1;
+    size_t count[squares][TOTAL_COLORS];
+    for (lyrnum_t i = 0; i < squares; i++) {
+        lyrnum_t total = (cube->layers - i * 2) * 4 - 4;
+        total = (total == 0 ? 1 : total);
+        memset(count[i], total, sizeof(size_t) * TOTAL_COLORS);
+        // TODO - complete this
+    }
+
     return true;
 }
 
@@ -46,6 +133,8 @@ static inline bool valid_cornorblocks(cube_t *cube) {
 bool is_valid_cube(cube_t *cube) {
     if (!valid_sides(cube))
         return false;
+    if (!valid_facerotations(cube))
+        return false;
     if (!valid_total_color(cube))
         return false;
     if (!valid_centralpieces(cube))
@@ -71,12 +160,12 @@ bool identical_cubes(cube_t *restrict cube1, cube_t *restrict cube2) {
 
     const move_t check_list[24] = {
     // initial position is "YELLOW at TOP, BLUE in front"
-            Y_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW,   // stop at "YELLOW at top, BLUE in front"
+            Y_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW, // stop at "YELLOW at top, BLUE in front"
             X_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW,   // stop at "BLUE at TOP, RED in front"
-            Z_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW,   // stop at "WHITE at TOP, BLUE in front"
+            Z_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW, // stop at "WHITE at TOP, BLUE in front"
             X_R90_C_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW, // stop at "GREEN at TOP, ORANGE in front"
-            X_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW,   // stop at "ORANGE at TOP, YELLOW in front"
-            X_R180, Y_R90_CW, Y_R90_CW, Y_R90_CW      // stop at "RED at TOP, GREEN in front"
+            X_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW, // stop at "ORANGE at TOP, YELLOW in front"
+            X_R180, Y_R90_CW, Y_R90_CW, Y_R90_CW    // stop at "RED at TOP, GREEN in front"
             };
 
     bool matched = false;
