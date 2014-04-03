@@ -96,13 +96,29 @@ static inline bool valid_facerotations(cube_t *cube) {
 }
 
 static inline bool valid_total_color(cube_t *cube) {
-    lyrnum_t squares = (cube->layers - 1) / 2 + 1;
-    size_t count[squares][TOTAL_COLORS];
-    for (lyrnum_t i = 0; i < squares; i++) {
-        lyrnum_t total = (cube->layers - i * 2) * 4 - 4;
+    lyrnum_t layers = cube->layers;
+    for (lyrnum_t i = 0; i < (layers - 1) / 2 + 1; i++) {
+        lyrnum_t total = (layers - i * 2) * 4 - 4;
         total = (total == 0 ? 1 : total);
-        memset(count[i], total, sizeof(size_t) * TOTAL_COLORS);
-        // TODO - complete this
+        color_t count[TOTAL_COLORS];
+        for (color_t j = 0; j < TOTAL_COLORS; j++) {
+            count[j] = total;
+        }
+
+        for (color_t j = 0; j < TOTAL_COLORS; j++) {
+            color_t (*face)[layers] = (color_t (*)[layers]) cube->faces[j];
+            for (lyrnum_t k = i, k_c = layers - 1 - i; k < layers; k++, k_c--) {
+                count[face[i][k]]--;
+                count[face[k_c][layers - 1 - i]]--;
+                count[face[layers - 1 - i][k_c]]--;
+                count[face[k_c][i]]--;
+            }
+        }
+
+        for (color_t j = 0; j < TOTAL_COLORS; j++) {
+            if (count[i] != 0)
+                return false;
+        }
     }
 
     return true;
