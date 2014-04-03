@@ -99,28 +99,35 @@ static inline bool valid_total_color(cube_t *cube) {
     lyrnum_t layers = cube->layers;
     for (lyrnum_t i = 0; i < (layers - 1) / 2 + 1; i++) {
         lyrnum_t total = (layers - i * 2) * 4 - 4;
-        total = (total == 0 ? 1 : total);
-        color_t count[TOTAL_COLORS];
-        for (color_t j = 0; j < TOTAL_COLORS; j++) {
+        total = (total == 0 ? 1: total);
+        lyrnum_t count[TOTAL_COLORS];
+        for (color_t j=0; j<TOTAL_COLORS; j++) {
             count[j] = total;
         }
-
-        for (color_t j = 0; j < TOTAL_COLORS; j++) {
-            color_t (*face)[layers] = (color_t (*)[layers]) cube->faces[j];
-            for (lyrnum_t k = i, k_c = layers - 1 - i; k < layers; k++, k_c--) {
-                count[face[i][k]]--;
-                count[face[k_c][layers - 1 - i]]--;
-                count[face[layers - 1 - i][k_c]]--;
-                count[face[k_c][i]]--;
+        
+        if (total == 1) {
+            lyrnum_t center = pow(layers, 2);
+            for (color_t j = 0; j < TOTAL_COLORS; j++) {
+                count[cube->faces[j][center]]--;
+            }
+        } else {
+            for (color_t j = 0; j < TOTAL_COLORS; j++) {
+                color_t (*face)[layers] = (color_t (*)[layers]) cube->faces[j];
+                for (lyrnum_t k = i, k_c = layers - 1 - i; k < layers - 1; k++, k_c--) {
+                    count[face[i][k]]--;
+                    count[face[k_c][layers - 1 - i]]--;
+                    count[face[layers - 1 - i][k_c]]--;
+                    count[face[k_c][i]]--;
+                }
             }
         }
-
+        
         for (color_t j = 0; j < TOTAL_COLORS; j++) {
             if (count[i] != 0)
                 return false;
         }
     }
-
+    
     return true;
 }
 
