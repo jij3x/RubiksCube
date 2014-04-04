@@ -8,7 +8,7 @@ static size_t passed, failed;
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"
 
-void test(testcase_t testcase, char *tc_name) {
+void test(testcase_ptr_t testcase, char *tc_name) {
     clock_t begin = clock();
 
     bool result = testcase();

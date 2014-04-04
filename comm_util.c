@@ -1,6 +1,6 @@
 #include "comm_util.h"
 
-sll_t *sll_create(size_t elem_size, free_func_t elemfree_func) {
+sll_t *sll_create(size_t elem_size, free_func_ptr_t elemfree_func) {
     sll_t init_list = { .elem_size = elem_size, .elemfree_func = elemfree_func };
     sll_t *list = malloc(sizeof(sll_t));
     if (list == NULL)
@@ -72,8 +72,8 @@ sll_node_t *sll_get_next(sll_t *list) {
     return node;
 }
 
-unsigned long djb2_hash(unsigned char *str) {
-    unsigned long hash = 5381;
+uint64_t djb2_hash(unsigned char *str) {
+    uint64_t hash = 5381;
     int c;
 
     while ((c = *str++))
@@ -81,3 +81,5 @@ unsigned long djb2_hash(unsigned char *str) {
 
     return hash;
 }
+
+

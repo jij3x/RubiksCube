@@ -580,42 +580,42 @@ void rotate_z_180(cube_t * cube) {
     cube->face_offset[leftside_c] = ra_tbl[cube->face_offset[leftside_c]][R_180];
 }
 
-typedef void (*turn_func_t)(cube_t *, lyrnum_t, lyrnum_t);
-typedef void (*rotate_func_t)(cube_t *); // layers does not matter to rotate functions
-typedef union move_func_u {
-    turn_func_t turn;
-    rotate_func_t rotate;
-} move_func_t;
+typedef void (*turn_func_ptr_t)(cube_t *, lyrnum_t, lyrnum_t);
+typedef void (*rotate_func_ptr_t)(cube_t *); // layers does not matter to rotate functions
+typedef union move_func_ptr_u {
+    turn_func_ptr_t turn;
+    rotate_func_ptr_t rotate;
+} move_func_ptr_t;
 
-static const move_func_t move_ops[TOTAL_MOVES] = {
+static const move_func_ptr_t move_ops[TOTAL_MOVES] = {
 // (turn + rotate) functions
-        (move_func_t) &turn_y_90_c_cw, // YELLOW side: R_90_CW
-        (move_func_t) &turn_y_90_cw,   // YELLOW side: R_90_C_CW
-        (move_func_t) &turn_y_180,     // YELLOW side: R_180
-        (move_func_t) &turn_y_90_cw,   // WHITE side: R_90_CW
-        (move_func_t) &turn_y_90_c_cw, // WHITE side: R_90_C_CW
-        (move_func_t) &turn_y_180,     // WHITE side: R_180
-        (move_func_t) &turn_x_90_cw,   // RED side: R_90_CW
-        (move_func_t) &turn_x_90_c_cw, // RED side: R_90_C_CW
-        (move_func_t) &turn_x_180,     // RED side: R_180
-        (move_func_t) &turn_x_90_c_cw, // ORANGE side: R_90_CW
-        (move_func_t) &turn_x_90_cw,   // ORANGE side: R_90_C_CW
-        (move_func_t) &turn_x_180,     // ORANGE side: R_180
-        (move_func_t) &turn_z_90_cw,   // BLUE side: R_90_CW
-        (move_func_t) &turn_z_90_c_cw, // BLUE side: R_90_C_CW
-        (move_func_t) &turn_z_180,     // BLUE side: R_180
-        (move_func_t) &turn_z_90_c_cw, // GREEN side: R_90_CW
-        (move_func_t) &turn_z_90_cw,   // GREEN side: R_90_C_CW
-        (move_func_t) &turn_z_180,     // GREEN side: R_180
-        (move_func_t) &rotate_x_90_cw,   // cube rotate : X_R90_CW
-        (move_func_t) &rotate_x_90_c_cw, // cube rotate : X_R90_C_CW
-        (move_func_t) &rotate_x_180,     // cube rotate : X_R180
-        (move_func_t) &rotate_y_90_cw,   // cube rotate : Y_R90_CW
-        (move_func_t) &rotate_y_90_c_cw, // cube rotate : Y_R90_C_CW
-        (move_func_t) &rotate_y_180,     // cube rotate : Y_R180
-        (move_func_t) &rotate_z_90_cw,   // cube rotate : Z_R90_CW
-        (move_func_t) &rotate_z_90_c_cw, // cube rotate : Z_R90_C_CW
-        (move_func_t) &rotate_z_180      // cube rotate : Z_R180
+        (move_func_ptr_t) &turn_y_90_c_cw, // YELLOW side: R_90_CW
+        (move_func_ptr_t) &turn_y_90_cw,   // YELLOW side: R_90_C_CW
+        (move_func_ptr_t) &turn_y_180,     // YELLOW side: R_180
+        (move_func_ptr_t) &turn_y_90_cw,   // WHITE side: R_90_CW
+        (move_func_ptr_t) &turn_y_90_c_cw, // WHITE side: R_90_C_CW
+        (move_func_ptr_t) &turn_y_180,     // WHITE side: R_180
+        (move_func_ptr_t) &turn_x_90_cw,   // RED side: R_90_CW
+        (move_func_ptr_t) &turn_x_90_c_cw, // RED side: R_90_C_CW
+        (move_func_ptr_t) &turn_x_180,     // RED side: R_180
+        (move_func_ptr_t) &turn_x_90_c_cw, // ORANGE side: R_90_CW
+        (move_func_ptr_t) &turn_x_90_cw,   // ORANGE side: R_90_C_CW
+        (move_func_ptr_t) &turn_x_180,     // ORANGE side: R_180
+        (move_func_ptr_t) &turn_z_90_cw,   // BLUE side: R_90_CW
+        (move_func_ptr_t) &turn_z_90_c_cw, // BLUE side: R_90_C_CW
+        (move_func_ptr_t) &turn_z_180,     // BLUE side: R_180
+        (move_func_ptr_t) &turn_z_90_c_cw, // GREEN side: R_90_CW
+        (move_func_ptr_t) &turn_z_90_cw,   // GREEN side: R_90_C_CW
+        (move_func_ptr_t) &turn_z_180,     // GREEN side: R_180
+        (move_func_ptr_t) &rotate_x_90_cw,   // cube rotate : X_R90_CW
+        (move_func_ptr_t) &rotate_x_90_c_cw, // cube rotate : X_R90_C_CW
+        (move_func_ptr_t) &rotate_x_180,     // cube rotate : X_R180
+        (move_func_ptr_t) &rotate_y_90_cw,   // cube rotate : Y_R90_CW
+        (move_func_ptr_t) &rotate_y_90_c_cw, // cube rotate : Y_R90_C_CW
+        (move_func_ptr_t) &rotate_y_180,     // cube rotate : Y_R180
+        (move_func_ptr_t) &rotate_z_90_cw,   // cube rotate : Z_R90_CW
+        (move_func_ptr_t) &rotate_z_90_c_cw, // cube rotate : Z_R90_C_CW
+        (move_func_ptr_t) &rotate_z_180      // cube rotate : Z_R180
         };
 
 void move_cube(cube_t *cube, move_t move, lyrnum_t start_l, lyrnum_t end_l) {

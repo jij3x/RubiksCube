@@ -3,9 +3,9 @@
 
 #include "globe_def.h"
 
-typedef bool (*testcase_t)(void);
+typedef bool (*testcase_ptr_t)(void);
 
-void test(testcase_t testcase, char *tc_name);
+void test(testcase_ptr_t testcase, char *tc_name);
 void print_stat(void);
 
 #endif /* UNITTEST_H_ */
