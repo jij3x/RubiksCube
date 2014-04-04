@@ -95,16 +95,16 @@ static inline bool valid_facerotations(cube_t *cube) {
     return true;
 }
 
-static inline bool valid_total_color(cube_t *cube) {
+static inline bool valid_total_colors(cube_t *cube) {
     lyrnum_t layers = cube->layers;
     for (lyrnum_t i = 0; i < (layers - 1) / 2 + 1; i++) {
         lyrnum_t total = (layers - i * 2) * 4 - 4;
-        total = (total == 0 ? 1: total);
+        total = (total == 0 ? 1 : total);
         lyrnum_t count[TOTAL_COLORS];
-        for (color_t j=0; j<TOTAL_COLORS; j++) {
+        for (color_t j = 0; j < TOTAL_COLORS; j++) {
             count[j] = total;
         }
-        
+
         if (total == 1) {
             lyrnum_t center = pow(layers, 2);
             for (color_t j = 0; j < TOTAL_COLORS; j++) {
@@ -113,21 +113,21 @@ static inline bool valid_total_color(cube_t *cube) {
         } else {
             for (color_t j = 0; j < TOTAL_COLORS; j++) {
                 color_t (*face)[layers] = (color_t (*)[layers]) cube->faces[j];
-                for (lyrnum_t k = i, k_c = layers - 1 - i; k < layers - 1; k++, k_c--) {
+                for (lyrnum_t k = i, k_c = layers - 1 - i; k < layers - 1 - i; k++, k_c--) {
                     count[face[i][k]]--;
-                    count[face[k_c][layers - 1 - i]]--;
+                    count[face[k][layers - 1 - i]]--;
                     count[face[layers - 1 - i][k_c]]--;
                     count[face[k_c][i]]--;
                 }
             }
         }
-        
+
         for (color_t j = 0; j < TOTAL_COLORS; j++) {
-            if (count[i] != 0)
+            if (count[j] != 0)
                 return false;
         }
     }
-    
+
     return true;
 }
 
@@ -158,7 +158,7 @@ bool is_valid_cube(cube_t *cube) {
         return false;
     if (!valid_facerotations(cube))
         return false;
-    if (!valid_total_color(cube))
+    if (!valid_total_colors(cube))
         return false;
     if (!valid_centralpieces(cube))
         return false;
@@ -170,25 +170,18 @@ bool is_valid_cube(cube_t *cube) {
     return true;
 }
 
-bool is_valid_3x3x3(cube_t *cube) {
-    if (cube->layers != 3 || !is_valid_cube(cube))
-        return false;
-
-    return true;
-}
-
 bool identical_cubes(cube_t *restrict cube1, cube_t *restrict cube2) {
     if (cube1->layers != cube2->layers)
         return false;
 
     const move_t check_list[24] = {
     // initial position is "YELLOW at TOP, BLUE in front"
-            Y_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW, // stop at "YELLOW at top, BLUE in front"
+            Y_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW,   // stop at "YELLOW at top, BLUE in front"
             X_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW,   // stop at "BLUE at TOP, RED in front"
-            Z_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW, // stop at "WHITE at TOP, BLUE in front"
+            Z_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW,   // stop at "WHITE at TOP, BLUE in front"
             X_R90_C_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW, // stop at "GREEN at TOP, ORANGE in front"
-            X_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW, // stop at "ORANGE at TOP, YELLOW in front"
-            X_R180, Y_R90_CW, Y_R90_CW, Y_R90_CW    // stop at "RED at TOP, GREEN in front"
+            X_R90_CW, Y_R90_CW, Y_R90_CW, Y_R90_CW,   // stop at "ORANGE at TOP, YELLOW in front"
+            X_R180, Y_R90_CW, Y_R90_CW, Y_R90_CW      // stop at "RED at TOP, GREEN in front"
             };
 
     bool matched = false;
@@ -239,4 +232,12 @@ bool is_solved_cube(cube_t *cube) {
         return false;
 
     return true;
+}
+
+bool is_recoverable_cube(cube_t *cube) {
+    return true;
+}
+
+void recover_cube(cube_t *cube) {
+
 }

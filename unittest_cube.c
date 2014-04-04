@@ -14,7 +14,7 @@ bool tc_identical_cubes(void) {
 }
 
 bool tc_is_valid_cube(void) {
-    cube_t *cube = create_cube(4096);
+    cube_t *cube = create_cube(1024);
 
     bool result = is_valid_cube(cube);
 
