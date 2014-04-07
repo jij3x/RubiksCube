@@ -283,7 +283,7 @@ perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], size_t len, keyhash_fptr_t key
             size_t k = 0;
             for (; k < len; k++) {
                 if (universal_hashing(hashcodes[k], len, a, b) == i) {
-                    uint32_t idx = universal_hashing(hashcodes[k], len, aa, bb);
+                    uint32_t idx = universal_hashing(hashcodes[k], size, aa, bb);
                     if (init_elements[idx] != NULL) {
                         for (size_t p = 0; p <= i; p++) {
                             free_sec_htbl((void *) fst_slots[p].elements, fst_slots[p].size,
