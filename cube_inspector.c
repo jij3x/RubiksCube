@@ -149,8 +149,121 @@ static inline bool valid_edgeblocks(cube_t *cube) {
     return true;
 }
 
+typedef struct cblk {
+    color_t c1, c2, c3;
+} cblk_t;
+
+uint32_t cb_hash(void *key) {
+    cblk_t *cblk = (cblk_t *) key;
+    if (cblk->c1 > cblk->c2)
+        SWAP(cblk->c1, cblk->c2);
+    if (cblk->c2 > cblk->c3)
+        SWAP(cblk->c2, cblk->c3);
+    if (cblk->c1 > cblk->c2)
+        SWAP(cblk->c1, cblk->c2);
+
+    return cblk->c1 * pow(TOTAL_COLORS, 2) + cblk->c2 * TOTAL_COLORS + cblk->c3;
+}
+
 static inline bool valid_cornorblocks(cube_t *cube) {
+    cblk_t ck_cblk1 = { .c1 = YELLOW, .c2 = BLUE, .c3 = RED };
+    cblk_t ck_cblk2 = { .c1 = YELLOW, .c2 = BLUE, .c3 = ORANGE };
+    cblk_t ck_cblk3 = { .c1 = YELLOW, .c2 = GREEN, .c3 = RED };
+    cblk_t ck_cblk4 = { .c1 = YELLOW, .c2 = GREEN, .c3 = ORANGE };
+    cblk_t ck_cblk5 = { .c1 = WHITE, .c2 = BLUE, .c3 = RED };
+    cblk_t ck_cblk6 = { .c1 = WHITE, .c2 = BLUE, .c3 = ORANGE };
+    cblk_t ck_cblk7 = { .c1 = WHITE, .c2 = GREEN, .c3 = RED };
+    cblk_t ck_cblk8 = { .c1 = WHITE, .c2 = GREEN, .c3 = ORANGE };
+
+    uint32_t init_cnt = 1;
+
+    kv_pair_t kv_set[8] = {
+    //
+            { .key = &ck_cblk1, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ck_cblk2, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ck_cblk3, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ck_cblk4, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ck_cblk5, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ck_cblk6, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ck_cblk7, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ck_cblk8, .value = &init_cnt, .vlen = sizeof(init_cnt) } //
+    };
+
+    int rc;
+    perf_htbl_t *tbl = perf_htbl_create(kv_set, 8, &cb_hash, NULL, &rc);
+
+    lyrnum_t layers = cube->layers;
+
+    color_t (*y_face)[layers] = (color_t (*)[layers]) cube->faces[YELLOW];
+    color_t (*w_face)[layers] = (color_t (*)[layers]) cube->faces[WHITE];
+    color_t (*r_face)[layers] = (color_t (*)[layers]) cube->faces[RED];
+    color_t (*o_face)[layers] = (color_t (*)[layers]) cube->faces[ORANGE];
+    color_t (*b_face)[layers] = (color_t (*)[layers]) cube->faces[BLUE];
+    color_t (*g_face)[layers] = (color_t (*)[layers]) cube->faces[GREEN];
+
+    lyrnum_t last = layers - 1;
+    cblk_t cblk1 = { .c1 = y_face[0][0], .c2 = o_face[0][0], .c3 = g_face[0][last] };
+    cblk_t cblk2 = { .c1 = y_face[0][last], .c2 = r_face[0][last], .c3 = g_face[0][0] };
+    cblk_t cblk3 = { .c1 = y_face[last][last], .c2 = r_face[0][0], .c3 = b_face[0][last] };
+    cblk_t cblk4 = { .c1 = y_face[last][0], .c2 = b_face[0][0], .c3 = o_face[0][last] };
+    cblk_t cblk5 = { .c1 = w_face[0][0], .c2 = b_face[last][0], .c3 = o_face[last][last] };
+    cblk_t cblk6 = { .c1 = w_face[0][last], .c2 = b_face[last][last], .c3 = r_face[last][0] };
+    cblk_t cblk7 = { .c1 = w_face[last][last], .c2 = r_face[last][last], .c3 = g_face[0][last] };
+    cblk_t cblk8 = { .c1 = w_face[last][0], .c2 = o_face[0][last], .c3 = g_face[last][last] };
+
+    uint32_t *count = perf_htbl_get(tbl, &cblk1);
+    if (count == NULL || *count != 1)
+        goto failed;
+    else
+        (*count)--;
+
+    count = perf_htbl_get(tbl, &cblk2);
+    if (count == NULL || *count != 1)
+        goto failed;
+    else
+        (*count)--;
+
+    count = perf_htbl_get(tbl, &cblk3);
+    if (count == NULL || *count != 1)
+        goto failed;
+    else
+        (*count)--;
+
+    count = perf_htbl_get(tbl, &cblk4);
+    if (count == NULL || *count != 1)
+        goto failed;
+    else
+        (*count)--;
+
+    count = perf_htbl_get(tbl, &cblk5);
+    if (count == NULL || *count != 1)
+        goto failed;
+    else
+        (*count)--;
+
+    count = perf_htbl_get(tbl, &cblk6);
+    if (count == NULL || *count != 1)
+        goto failed;
+    else
+        (*count)--;
+
+    count = perf_htbl_get(tbl, &cblk7);
+    if (count == NULL || *count != 1)
+        goto failed;
+    else
+        (*count)--;
+
+    count = perf_htbl_get(tbl, &cblk8);
+    if (count == NULL || *count != 1)
+        goto failed;
+    else
+        (*count)--;
+
+    perf_htbl_destroy(tbl);
     return true;
+
+    failed: perf_htbl_destroy(tbl);
+    return false;
 }
 
 bool is_valid_cube(cube_t *cube) {
