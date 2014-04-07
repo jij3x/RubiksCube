@@ -43,11 +43,13 @@ typedef struct sec_htbl {
 } sec_htbl_t;
 
 typedef uint32_t (*keyhash_fptr_t)(void *);
+typedef int (*keycmp_fptr_t)(void *, void *);
 
 typedef struct perf_htbl {
-    const uint32_t size, a, b, seed;
+    const uint32_t size, a, b;
     const sec_htbl_t *fst_slots;
     const keyhash_fptr_t keyhash_func;
+    const keycmp_fptr_t keycmp_func;
     const free_fptr_t free_func;
 } perf_htbl_t;
 
@@ -63,7 +65,7 @@ enum perf_htbl_create_rc_e {
 #define MAX_RETRIES 32
 
 perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], size_t len, keyhash_fptr_t keyhash_func,
-        free_fptr_t free_func, int *rc);
+        keycmp_fptr_t keycmp_func, free_fptr_t free_func, int *rc);
 void perf_htbl_destroy(perf_htbl_t *tbl);
 void *perf_htbl_get(perf_htbl_t *tbl, void *key);
 void perf_htbl_updtv(perf_htbl_t *tbl, void *key, void *val);

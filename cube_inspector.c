@@ -153,7 +153,7 @@ typedef struct cblk {
     color_t c1, c2, c3;
 } cblk_t;
 
-uint32_t cb_hash(void *key) {
+uint32_t cblk_hash(void *key) {
     cblk_t *cblk = (cblk_t *) key;
     if (cblk->c1 > cblk->c2)
         SWAP(cblk->c1, cblk->c2);
@@ -165,32 +165,39 @@ uint32_t cb_hash(void *key) {
     return cblk->c1 * pow(TOTAL_COLORS, 2) + cblk->c2 * TOTAL_COLORS + cblk->c3;
 }
 
+int cblk_cmp(void *cblk1, void *cblk2) {
+    return cblk_hash(cblk1) - cblk_hash(cblk2);
+}
+
 static inline bool valid_cornorblocks(cube_t *cube) {
-    cblk_t ck_cblk1 = { .c1 = YELLOW, .c2 = BLUE, .c3 = RED };
-    cblk_t ck_cblk2 = { .c1 = YELLOW, .c2 = BLUE, .c3 = ORANGE };
-    cblk_t ck_cblk3 = { .c1 = YELLOW, .c2 = GREEN, .c3 = RED };
-    cblk_t ck_cblk4 = { .c1 = YELLOW, .c2 = GREEN, .c3 = ORANGE };
-    cblk_t ck_cblk5 = { .c1 = WHITE, .c2 = BLUE, .c3 = RED };
-    cblk_t ck_cblk6 = { .c1 = WHITE, .c2 = BLUE, .c3 = ORANGE };
-    cblk_t ck_cblk7 = { .c1 = WHITE, .c2 = GREEN, .c3 = RED };
-    cblk_t ck_cblk8 = { .c1 = WHITE, .c2 = GREEN, .c3 = ORANGE };
+    cblk_t ref_cblks[8] = {
+    //
+            { .c1 = YELLOW, .c2 = BLUE, .c3 = RED }, //
+            { .c1 = YELLOW, .c2 = BLUE, .c3 = ORANGE }, //
+            { .c1 = YELLOW, .c2 = GREEN, .c3 = RED }, //
+            { .c1 = YELLOW, .c2 = GREEN, .c3 = ORANGE }, //
+            { .c1 = WHITE, .c2 = BLUE, .c3 = RED }, //
+            { .c1 = WHITE, .c2 = BLUE, .c3 = ORANGE }, //
+            { .c1 = WHITE, .c2 = GREEN, .c3 = RED }, //
+            { .c1 = WHITE, .c2 = GREEN, .c3 = ORANGE } //
+    };
 
     uint32_t init_cnt = 1;
 
     kv_pair_t kv_set[8] = {
     //
-            { .key = &ck_cblk1, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
-            { .key = &ck_cblk2, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
-            { .key = &ck_cblk3, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
-            { .key = &ck_cblk4, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
-            { .key = &ck_cblk5, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
-            { .key = &ck_cblk6, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
-            { .key = &ck_cblk7, .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
-            { .key = &ck_cblk8, .value = &init_cnt, .vlen = sizeof(init_cnt) } //
+            { .key = &ref_cblks[0], .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ref_cblks[1], .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ref_cblks[2], .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ref_cblks[3], .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ref_cblks[4], .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ref_cblks[5], .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ref_cblks[6], .value = &init_cnt, .vlen = sizeof(init_cnt) }, //
+            { .key = &ref_cblks[7], .value = &init_cnt, .vlen = sizeof(init_cnt) } //
     };
 
     int rc;
-    perf_htbl_t *tbl = perf_htbl_create(kv_set, 8, &cb_hash, NULL, &rc);
+    perf_htbl_t *tbl = perf_htbl_create(kv_set, 8, &cblk_hash, &cblk_cmp, NULL, &rc);
 
     lyrnum_t layers = cube->layers;
 
@@ -202,68 +209,29 @@ static inline bool valid_cornorblocks(cube_t *cube) {
     color_t (*g_face)[layers] = (color_t (*)[layers]) cube->faces[GREEN];
 
     lyrnum_t last = layers - 1;
-    cblk_t cblk1 = { .c1 = y_face[0][0], .c2 = o_face[0][0], .c3 = g_face[0][last] };
-    cblk_t cblk2 = { .c1 = y_face[0][last], .c2 = r_face[0][last], .c3 = g_face[0][0] };
-    cblk_t cblk3 = { .c1 = y_face[last][last], .c2 = r_face[0][0], .c3 = b_face[0][last] };
-    cblk_t cblk4 = { .c1 = y_face[last][0], .c2 = b_face[0][0], .c3 = o_face[0][last] };
-    cblk_t cblk5 = { .c1 = w_face[0][0], .c2 = b_face[last][0], .c3 = o_face[last][last] };
-    cblk_t cblk6 = { .c1 = w_face[0][last], .c2 = b_face[last][last], .c3 = r_face[last][0] };
-    cblk_t cblk7 = { .c1 = w_face[last][last], .c2 = r_face[last][last], .c3 = g_face[0][last] };
-    cblk_t cblk8 = { .c1 = w_face[last][0], .c2 = o_face[0][last], .c3 = g_face[last][last] };
+    cblk_t testing_cblks[8] = {
+    //
+            { .c1 = y_face[0][0], .c2 = o_face[0][0], .c3 = g_face[0][last] }, //
+            { .c1 = y_face[0][last], .c2 = r_face[0][last], .c3 = g_face[0][0] }, //
+            { .c1 = y_face[last][last], .c2 = r_face[0][0], .c3 = b_face[0][last] }, //
+            { .c1 = y_face[last][0], .c2 = b_face[0][0], .c3 = o_face[0][last] }, //
+            { .c1 = w_face[0][0], .c2 = b_face[last][0], .c3 = o_face[last][last] }, //
+            { .c1 = w_face[0][last], .c2 = b_face[last][last], .c3 = r_face[last][0] }, //
+            { .c1 = w_face[last][last], .c2 = r_face[last][last], .c3 = g_face[0][last] }, //
+            { .c1 = w_face[last][0], .c2 = o_face[0][last], .c3 = g_face[last][last] } //
+    };
 
-    uint32_t *count = perf_htbl_get(tbl, &cblk1);
-    if (count == NULL || *count != 1)
-        goto failed;
-    else
+    for (size_t i = 0; i < 8; i++) {
+        uint32_t *count = perf_htbl_get(tbl, &testing_cblks[i]);
+        if (count == NULL || *count != 1) {
+            perf_htbl_destroy(tbl);
+            return false;
+        }
         (*count)--;
-
-    count = perf_htbl_get(tbl, &cblk2);
-    if (count == NULL || *count != 1)
-        goto failed;
-    else
-        (*count)--;
-
-    count = perf_htbl_get(tbl, &cblk3);
-    if (count == NULL || *count != 1)
-        goto failed;
-    else
-        (*count)--;
-
-    count = perf_htbl_get(tbl, &cblk4);
-    if (count == NULL || *count != 1)
-        goto failed;
-    else
-        (*count)--;
-
-    count = perf_htbl_get(tbl, &cblk5);
-    if (count == NULL || *count != 1)
-        goto failed;
-    else
-        (*count)--;
-
-    count = perf_htbl_get(tbl, &cblk6);
-    if (count == NULL || *count != 1)
-        goto failed;
-    else
-        (*count)--;
-
-    count = perf_htbl_get(tbl, &cblk7);
-    if (count == NULL || *count != 1)
-        goto failed;
-    else
-        (*count)--;
-
-    count = perf_htbl_get(tbl, &cblk8);
-    if (count == NULL || *count != 1)
-        goto failed;
-    else
-        (*count)--;
+    }
 
     perf_htbl_destroy(tbl);
     return true;
-
-    failed: perf_htbl_destroy(tbl);
-    return false;
 }
 
 bool is_valid_cube(cube_t *cube) {

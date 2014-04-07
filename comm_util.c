@@ -203,19 +203,24 @@ int uint32_cmpfunc(const void *a, const void *b) {
 }
 
 void free_sec_htbl(void **tbl, uint32_t len, free_fptr_t free_func) {
+    if (tbl == NULL)
+        return;
+
     for (uint32_t i = 0; i < len; i++) {
         if (tbl[i] == NULL)
             continue;
 
-        if (free_func == NULL)
+        if (free_func == NULL) {
             free(tbl[i]);
-        else
+            tbl[i] = NULL;
+        } else {
             free_func(tbl[i]);
+        }
     }
 }
 
 perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], size_t len, keyhash_fptr_t keyhash_func,
-        free_fptr_t free_func, int *rc) {
+        keycmp_fptr_t keycmp_func, free_fptr_t free_func, int *rc) {
     assert(len > 0 && kv_set != NULL);
 
     srand(time(NULL));
@@ -240,8 +245,7 @@ perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], size_t len, keyhash_fptr_t key
                     break;
             }
 
-            if (sizeof(*kv_set[m].key) != sizeof(*kv_set[n].key)
-                    || !memcmp(kv_set[m].key, kv_set[n].key, sizeof(*kv_set[m].key)))
+            if (keycmp_func(kv_set[m].key, kv_set[n].key) != 0)
                 *rc = hash_key_collision;
             else
                 *rc = duplicate_keys;
@@ -264,13 +268,14 @@ perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], size_t len, keyhash_fptr_t key
     sec_htbl_t *fst_slots = malloc(sizeof(sec_htbl_t) * len);
 
     for (size_t i = 0; i < len; i++) {
+        sec_htbl_t init_sec_htbl = { .size = 0, .elements = NULL };
+        memcpy(&(fst_slots[i]), &init_sec_htbl, sizeof(sec_htbl_t));
+
         if (count[i] == 0) {
-            sec_htbl_t init_sec_htbl = { .size = 0, .elements = NULL };
-            memcpy(&(fst_slots[i]), &init_sec_htbl, sizeof(sec_htbl_t));
             continue;
         }
 
-        for (size_t r = 0; r < MAX_RETRIES; i++) {
+        for (size_t retries = 0; retries < MAX_RETRIES; retries++) {
             uint32_t size = pow(count[i], 2);
             void **init_elements = malloc(sizeof(void *) * size);
             for (size_t j = 0; j < size; j++) {
@@ -285,12 +290,12 @@ perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], size_t len, keyhash_fptr_t key
                 if (universal_hashing(hashcodes[k], len, a, b) == i) {
                     uint32_t idx = universal_hashing(hashcodes[k], size, aa, bb);
                     if (init_elements[idx] != NULL) {
-                        for (size_t p = 0; p <= i; p++) {
-                            free_sec_htbl((void *) fst_slots[p].elements, fst_slots[p].size,
-                                    free_func);
-                        }
-
-                        if (r == MAX_RETRIES - 1) {
+                        free(init_elements);
+                        if (retries == MAX_RETRIES - 1) {
+                            for (size_t p = 0; p < i; p++) {
+                                free_sec_htbl((void *) fst_slots[p].elements, fst_slots[p].size,
+                                        free_func);
+                            }
                             free(fst_slots);
                             *rc = secondary_uvhash_collision;
                             return NULL;
@@ -311,11 +316,10 @@ perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], size_t len, keyhash_fptr_t key
                 break;
             }
         }
-
     }
 
     perf_htbl_t init_perf_htbl = { .size = len, .a = a, .b = b, .fst_slots = fst_slots,
-            .keyhash_func = keyhash_func, .free_func = free_func };
+            .keyhash_func = keyhash_func, .keycmp_func = keycmp_func, .free_func = free_func };
     perf_htbl_t *perf_htbl = malloc(sizeof(perf_htbl_t));
     memcpy(perf_htbl, &init_perf_htbl, sizeof(perf_htbl_t));
 
