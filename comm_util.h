@@ -15,14 +15,14 @@ typedef struct dl_list_node {
 typedef void (*free_fptr_t)(void *);
 
 typedef struct dl_list {
-    const size_t elem_size;
+    const uint32_t elem_size;
     const free_fptr_t free_func;
     dl_list_node_t ss_guard;
     dl_list_node_t *head, *tail, *iter;
-    size_t count;
+    uint32_t count;
 } dl_list_t;
 
-dl_list_t *dl_list_create(size_t elem_size, free_fptr_t free_func);
+dl_list_t *dl_list_create(uint32_t elem_size, free_fptr_t free_func);
 void dl_list_destroy(dl_list_t *list);
 void dl_list_append(dl_list_t *list, void *element);
 void dl_list_insert(dl_list_t *list, void *element);
@@ -55,16 +55,16 @@ typedef struct perf_htbl {
 
 typedef struct kv_pair {
     void *key, *value;
-    size_t vlen;
+    uint32_t vlen;
 } kv_pair_t;
 
 enum perf_htbl_create_rc_e {
-    succeed, duplicate_keys, hash_key_collision, secondary_uvhash_collision
+    succeed, key_hash_collided, sec_uvhash_collided
 };
 
 #define MAX_RETRIES 32
 
-perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], size_t len, keyhash_fptr_t keyhash_func,
+perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], uint32_t len, keyhash_fptr_t keyhash_func,
         keycmp_fptr_t keycmp_func, free_fptr_t free_func, int *rc);
 void perf_htbl_destroy(perf_htbl_t *tbl);
 void *perf_htbl_get(perf_htbl_t *tbl, void *key);
