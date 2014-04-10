@@ -4,34 +4,34 @@
 #include "globe_def.h"
 
 /*
- * Doubly Linked List section start
+ * Singly Linked List section start
  */
 
-typedef struct dl_list_node {
+typedef struct sl_list_node {
     void *elem_ptr;
-    struct dl_list_node *next, *prev;
-} dl_list_node_t;
+    struct sl_list_node *next;
+} sl_list_node_t;
 
 typedef void (*free_fptr_t)(void *);
 
-typedef struct dl_list {
+typedef struct sl_list {
     const uint32_t elem_size;
     const free_fptr_t free_func;
-    dl_list_node_t ss_guard;
-    dl_list_node_t *head, *tail, *iter;
+    sl_list_node_t ss_guard;
+    sl_list_node_t *head, *tail, *iter;
     uint32_t count;
-} dl_list_t;
+} sl_list_t;
 
-dl_list_t *dl_list_create(uint32_t elem_size, free_fptr_t free_func);
-void dl_list_destroy(dl_list_t *list);
-void dl_list_append(dl_list_t *list, void *element);
-void dl_list_insert(dl_list_t *list, void *element);
-void dl_list_remove(dl_list_t *list);
-void dl_list_rmfst(dl_list_t *list);
-void dl_list_rmlst(dl_list_t *list);
-void dl_list_clear(dl_list_t *list);
-void dl_list_rstiter(dl_list_t *list);
-dl_list_node_t *dl_list_get_next(dl_list_t *list);
+sl_list_t *sl_list_create(uint32_t elem_size, free_fptr_t free_func);
+void sl_list_destroy(sl_list_t *list);
+void sl_list_append(sl_list_t *list, void *element);
+void sl_list_insert(sl_list_t *list, void *element);
+void sl_list_remove(sl_list_t *list);
+void sl_list_rmfst(sl_list_t *list);
+void sl_list_rmlst(sl_list_t *list);
+void sl_list_clear(sl_list_t *list);
+void sl_list_rstiter(sl_list_t *list);
+sl_list_node_t *sl_list_get_next(sl_list_t *list);
 
 /*
  * Perfect Hashing section start

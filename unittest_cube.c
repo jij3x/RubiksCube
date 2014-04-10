@@ -23,8 +23,12 @@ bool tc_is_valid_cube(void) {
 }
 
 int main(int argc, char *argv[]) {
-    test(&tc_identical_cubes, "is_valid_cube() happy case");
-    test(&tc_is_valid_cube, "identical_cubes() happy case");
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    srand(t.tv_usec * t.tv_sec);
+
+    test(&tc_identical_cubes, "identical_cubes() happy case");
+    test(&tc_is_valid_cube, "is_valid_cube() happy case");
 
     print_stat();
 

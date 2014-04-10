@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/time.h>
 
 #define SWAP(A,B) do { A^=B; B^=A; A^=B; } while(0)
 

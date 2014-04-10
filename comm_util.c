@@ -1,11 +1,11 @@
 #include "comm_util.h"
 
-dl_list_t *dl_list_create(uint32_t elem_size, free_fptr_t free_func) {
-    dl_list_t init_list = { .elem_size = elem_size, .free_func = free_func };
-    dl_list_t *list = malloc(sizeof(dl_list_t));
+sl_list_t *sl_list_create(uint32_t elem_size, free_fptr_t free_func) {
+    sl_list_t init_list = { .elem_size = elem_size, .free_func = free_func };
+    sl_list_t *list = malloc(sizeof(sl_list_t));
     if (list == NULL)
         abort();
-    memcpy(list, &init_list, sizeof(dl_list_t));
+    memcpy(list, &init_list, sizeof(sl_list_t));
 
     list->head = NULL;
     list->tail = NULL;
@@ -15,9 +15,9 @@ dl_list_t *dl_list_create(uint32_t elem_size, free_fptr_t free_func) {
     return list;
 }
 
-void dl_list_clear(dl_list_t *list) {
+void sl_list_clear(sl_list_t *list) {
     while (list->head != NULL) {
-        dl_list_node_t *node = list->head;
+        sl_list_node_t *node = list->head;
         list->head = list->head->next;
 
         if (list->free_func != NULL)
@@ -34,15 +34,15 @@ void dl_list_clear(dl_list_t *list) {
     list->iter = &list->ss_guard;
 }
 
-void dl_list_destroy(dl_list_t *list) {
-    dl_list_clear(list);
+void sl_list_destroy(sl_list_t *list) {
+    sl_list_clear(list);
 
     free(list);
     list = NULL;
 }
 
-void dl_list_append(dl_list_t *list, void *element) {
-    dl_list_node_t *node = malloc(sizeof(dl_list_node_t));
+void sl_list_append(sl_list_t *list, void *element) {
+    sl_list_node_t *node = malloc(sizeof(sl_list_node_t));
     node->elem_ptr = malloc(sizeof(list->elem_size));
     memcpy(node->elem_ptr, element, list->elem_size);
     node->next = NULL;
@@ -59,12 +59,12 @@ void dl_list_append(dl_list_t *list, void *element) {
     list->count++;
 }
 
-void dl_list_reset_iter(dl_list_t *list) {
+void sl_list_reset_iter(sl_list_t *list) {
     list->iter = &list->ss_guard;
 }
 
-dl_list_node_t *dl_list_get_next(dl_list_t *list) {
-    dl_list_node_t *node = list->iter->next;
+sl_list_node_t *sl_list_get_next(sl_list_t *list) {
+    sl_list_node_t *node = list->iter->next;
 
     if (list->iter->next != NULL)
         list->iter = list->iter->next;
@@ -125,9 +125,19 @@ uint32_t murmur3_32(const char *key, uint32_t len, uint32_t seed) {
     return hash;
 }
 
-const uint64_t PRIME_33B = ((uint64_t) 1 << 32) + 15;
+uint32_t universal_hashing(uint32_t key, uint32_t slots, uint32_t a, uint32_t b, uint32_t *a_gen,
+        uint32_t *b_gen) {
+    static const uint64_t PRIME_33B = ((uint64_t) 1 << 32) + 15;
 
-uint32_t universal_hashing(uint32_t key, uint32_t slots, uint32_t a, uint32_t b) {
+    if (a == 0 && b == 0) {
+        a = (rand() & 0xff) | (rand() & 0xff << 8) | (rand() & 0xff << 16) | (rand() & 0xff << 24);
+        a = (a == 0 ? 1 : a);
+        b = (rand() & 0xff) | (rand() & 0xff << 8) | (rand() & 0xff << 16) | (rand() & 0xff << 24);
+    }
+
+    *a_gen = a;
+    *b_gen = b;
+
     return (((uint64_t) a * key + b) % PRIME_33B) % slots;
 }
 
@@ -156,8 +166,6 @@ perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], uint32_t len, keyhash_fptr_t k
         keycmp_fptr_t keycmp_func, free_fptr_t free_func, int *rc) {
     assert(len > 0 && kv_set != NULL);
 
-    srand(time(NULL));
-
     uint32_t hashcodes[len], ordered_hc[len];
     for (uint32_t i = 0; i < len; i++) {
         hashcodes[i] = keyhash_func(kv_set[i].key);
@@ -172,16 +180,14 @@ perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], uint32_t len, keyhash_fptr_t k
         }
     }
 
-    uint32_t a = ((rand() << 16) & (~RAND_MAX)) | rand();
-    a = (a == 0 ? 1 : a);
-    uint32_t b = ((rand() << 16) & (~RAND_MAX)) | rand();
-
     uint32_t count[len];
     for (uint32_t i = 0; i < len; i++) {
         count[i] = 0;
     }
+
+    uint32_t a = 0, b = 0;
     for (uint32_t i = 0; i < len; i++) {
-        count[universal_hashing(hashcodes[i], len, a, b)]++;
+        count[universal_hashing(hashcodes[i], len, a, b, &a, &b)]++;
     }
 
     sec_htbl_t *fst_slots = malloc(sizeof(sec_htbl_t) * len);
@@ -196,6 +202,7 @@ perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], uint32_t len, keyhash_fptr_t k
             continue;
         }
 
+        uint32_t aa, bb;
         for (size_t retries = 0; retries < MAX_RETRIES; retries++) {
             uint32_t size = pow(count[i], 2);
             void **init_elements = malloc(sizeof(void *) * size);
@@ -206,14 +213,12 @@ perf_htbl_t *perf_htbl_create(kv_pair_t kv_set[], uint32_t len, keyhash_fptr_t k
                 init_elements[j] = NULL;
             }
 
-            uint32_t aa = ((rand() << 16) & (~RAND_MAX)) | rand();
-            aa = (aa == 0 ? 1 : aa);
-            uint32_t bb = ((rand() << 16) & (~RAND_MAX)) | rand();
-
+            aa = 0;
+            bb = 0;
             uint32_t k = 0;
             for (; k < len; k++) {
-                if (universal_hashing(hashcodes[k], len, a, b) == i) {
-                    uint32_t idx = universal_hashing(hashcodes[k], size, aa, bb);
+                if (universal_hashing(hashcodes[k], len, a, b, &a, &b) == i) {
+                    uint32_t idx = universal_hashing(hashcodes[k], size, aa, bb, &aa, &bb);
                     if (init_elements[idx] != NULL) {
                         free(init_elements);
                         if (retries == MAX_RETRIES - 1) {
@@ -268,10 +273,11 @@ void perf_htbl_destroy(perf_htbl_t *tbl) {
 
 void *perf_htbl_get(perf_htbl_t *tbl, void *key) {
     uint32_t hashcode = tbl->keyhash_func(key);
-    uint32_t slot = universal_hashing(hashcode, tbl->size, tbl->a, tbl->b);
+    uint32_t dummy_a, dummy_b;
+    uint32_t slot = universal_hashing(hashcode, tbl->size, tbl->a, tbl->b, &dummy_a, &dummy_b);
     if (tbl->fst_slots[slot].size == 0)
         return NULL;
     uint32_t idx = universal_hashing(hashcode, tbl->fst_slots[slot].size, tbl->fst_slots[slot].a,
-            tbl->fst_slots[slot].b);
+            tbl->fst_slots[slot].b, &dummy_a, &dummy_b);
     return tbl->fst_slots[slot].elements[idx];
 }
